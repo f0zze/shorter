@@ -6,16 +6,20 @@ import (
 	"time"
 )
 
-func CreateNewShortURL(url string) string {
+type ShortURLService struct {
+	Storage storage.URLStorage
+}
+
+func (service *ShortURLService) CreateNewShortURL(url string) string {
 	urlID := generateRandomString(5)
 
-	storage.Set(urlID, url)
+	service.Storage.Set(urlID, url)
 
 	return `http://localhost:8080/` + urlID
 }
 
-func FindURLByID(shortURLID string) string {
-	url := storage.Find(shortURLID)
+func (service *ShortURLService) FindURLByID(shortURLID string) string {
+	url := service.Storage.Find(shortURLID)
 
 	return url
 }

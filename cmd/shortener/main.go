@@ -3,16 +3,26 @@ package main
 import (
 	"fmt"
 	"github.com/f0zze/shorter/internal/app/handlers"
+	"github.com/f0zze/shorter/internal/app/services"
+	"github.com/f0zze/shorter/internal/app/storage"
 	"net/http"
 )
+
+var urlStorage = storage.NewStorage()
+var shortURLServices = services.ShortURLService{
+	Storage: urlStorage,
+}
+var rootHandler = handlers.RootHandler{
+	URLService: shortURLServices,
+}
 
 func mainHandler(w http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case http.MethodPost:
-		handlers.PostHandler(w, req)
+		rootHandler.PostHandler(w, req)
 
 	case http.MethodGet:
-		handlers.GetHandler(w, req)
+		rootHandler.GetHandler(w, req)
 	}
 }
 

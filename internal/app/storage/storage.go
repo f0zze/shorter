@@ -1,13 +1,24 @@
 package storage
 
-var storage = map[string]string{}
+type URLStorage struct {
+	data map[string]string
+}
 
-func Find(key string) string {
-	value := storage[key]
+func NewStorage() URLStorage {
+	return URLStorage{
+		data: make(map[string]string),
+	}
+}
 
+func (s *URLStorage) Find(key string) string {
+	value := s.data[key]
 	return value
 }
 
-func Set(key string, value string) {
-	storage[key] = value
+func (s *URLStorage) Set(key string, value string) {
+	s.data[key] = value
+}
+
+func (s *URLStorage) Size() int {
+	return len(s.data)
 }

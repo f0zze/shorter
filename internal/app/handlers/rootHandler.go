@@ -7,8 +7,14 @@ import (
 	"strings"
 )
 
-func PostHandler(resp http.ResponseWriter, req *http.Request) {
+type RootHandler struct {
+	URLService services.ShortURLService
+}
+
+func (rootHandler *RootHandler) PostHandler(resp http.ResponseWriter, req *http.Request) {
 	body, err := io.ReadAll(req.Body)
+
+	defer req.Body.Close()
 
 	if err != nil {
 		http.Error(resp, "Could not read url", http.StatusConflict)
@@ -17,7 +23,12 @@ func PostHandler(resp http.ResponseWriter, req *http.Request) {
 
 	url := string(body)
 
-	shortURL := services.CreateNewShortURL(url)
+	if url == "" {
+		http.Error(resp, "Invalid url", http.StatusNotFound)
+		return
+	}
+
+	shortURL := rootHandler.URLService.CreateNewShortURL(url)
 
 	resp.Header().Add("Content-Type", "text/plain")
 	resp.WriteHeader(http.StatusCreated)
@@ -25,7 +36,7 @@ func PostHandler(resp http.ResponseWriter, req *http.Request) {
 
 }
 
-func GetHandler(resp http.ResponseWriter, req *http.Request) {
+func (rootHandler *RootHandler) GetHandler(resp http.ResponseWriter, req *http.Request) {
 	urlID := parseShorURLID(req.URL.Path)
 
 	if urlID == "" {
@@ -33,7 +44,7 @@ func GetHandler(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	url := services.FindURLByID(urlID)
+	url := rootHandler.URLService.FindURLByID(urlID)
 
 	if url == "" {
 		url = `http://localhost:8080`
