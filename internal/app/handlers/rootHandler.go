@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"github.com/f0zze/shorter/internal/app/services"
+	"github.com/go-chi/chi/v5"
 	"io"
 	"net/http"
-	"strings"
 )
 
 type RootHandler struct {
@@ -37,7 +37,7 @@ func (rootHandler *RootHandler) PostHandler(resp http.ResponseWriter, req *http.
 }
 
 func (rootHandler *RootHandler) GetHandler(resp http.ResponseWriter, req *http.Request) {
-	urlID := parseShorURLID(req.URL.Path)
+	urlID := chi.URLParam(req, "id")
 
 	if urlID == "" {
 		http.NotFound(resp, req)
@@ -52,14 +52,4 @@ func (rootHandler *RootHandler) GetHandler(resp http.ResponseWriter, req *http.R
 
 	resp.Header().Add("Content-Type", "text/plain")
 	http.Redirect(resp, req, url, http.StatusTemporaryRedirect)
-}
-
-func parseShorURLID(path string) string {
-	pathSegments := strings.Split(path, "/")
-
-	if len(pathSegments) != 2 {
-		return ""
-	}
-
-	return pathSegments[1]
 }

@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"context"
 	"github.com/f0zze/shorter/internal/app/storage"
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
@@ -59,15 +61,20 @@ func TestGetHandler(t *testing.T) {
 		url := handlers.URLService.CreateNewShortURL(urlToSave)
 		urlID := strings.Split(url, "/")[3]
 
-		request := httptest.NewRequest(http.MethodGet, "/"+urlID, nil)
+		request := httptest.NewRequest(http.MethodGet, "/{id}", nil)
 		record := httptest.NewRecorder()
+
+		rctx := chi.NewRouteContext()
+		rctx.URLParams.Add("id", urlID)
+
+		request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
 
 		handlers.GetHandler(record, request)
 
 		response := record.Result()
 		defer response.Body.Close()
 
-		assert.Equal(t, response.StatusCode, http.StatusTemporaryRedirect)
+		assert.Equal(t, http.StatusTemporaryRedirect, response.StatusCode)
 		assert.Equal(t, response.Header.Get("Location"), urlToSave)
 	})
 
