@@ -15,7 +15,10 @@ import (
 func TestPostHandler(t *testing.T) {
 	urlStorage := storage.NewStorage()
 	handlers := RootHandler{
-		URLService: struct{ Storage storage.URLStorage }{Storage: urlStorage},
+		URLService: struct {
+			ResultURL string
+			Storage   storage.URLStorage
+		}{Storage: urlStorage, ResultURL: "http://localhost:8888"},
 	}
 
 	t.Run("should return new shorter", func(t *testing.T) {
@@ -32,7 +35,7 @@ func TestPostHandler(t *testing.T) {
 		}
 		defer response.Body.Close()
 
-		assert.Contains(t, string(body), "http://localhost:8080/")
+		assert.Contains(t, string(body), "http://localhost:8888/")
 		assert.Equal(t, response.StatusCode, http.StatusCreated)
 		assert.Equal(t, 1, urlStorage.Size())
 	})
@@ -54,7 +57,10 @@ func TestPostHandler(t *testing.T) {
 func TestGetHandler(t *testing.T) {
 	urlStorage := storage.NewStorage()
 	handlers := RootHandler{
-		URLService: struct{ Storage storage.URLStorage }{Storage: urlStorage},
+		URLService: struct {
+			ResultURL string
+			Storage   storage.URLStorage
+		}{Storage: urlStorage, ResultURL: "http://localhost:2222"},
 	}
 	t.Run("should redirect to full url by requested id", func(t *testing.T) {
 		urlToSave := "https://yandex.ru"

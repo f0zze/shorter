@@ -7,7 +7,8 @@ import (
 )
 
 type ShortURLService struct {
-	Storage storage.URLStorage
+	ResultURL string
+	Storage   storage.URLStorage
 }
 
 func (service *ShortURLService) CreateNewShortURL(url string) string {
@@ -15,7 +16,7 @@ func (service *ShortURLService) CreateNewShortURL(url string) string {
 
 	service.Storage.Set(urlID, url)
 
-	return `http://localhost:8080/` + urlID
+	return service.ResultURL + "/" + urlID
 }
 
 func (service *ShortURLService) FindURLByID(shortURLID string) string {

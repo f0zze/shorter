@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"flag"
 	"github.com/f0zze/shorter/internal/app/handlers"
 	"github.com/f0zze/shorter/internal/app/services"
 	"github.com/f0zze/shorter/internal/app/storage"
@@ -9,10 +9,32 @@ import (
 	"net/http"
 )
 
+type ServerConfig struct {
+	host     string
+	response string
+}
+
+func getConfig() ServerConfig {
+	host := flag.String("a", "localhost:8080", "Server URL")
+	destHost := flag.String("b", "http://localhost:8080", "Response server URL")
+	flag.Parse()
+
+	return ServerConfig{
+		*host,
+		*destHost,
+	}
+}
+
 func main() {
+	config := getConfig()
+	runServer(config)
+}
+
+func runServer(config ServerConfig) {
 	var urlStorage = storage.NewStorage()
 	var shortURLServices = services.ShortURLService{
-		Storage: urlStorage,
+		ResultURL: config.response,
+		Storage:   urlStorage,
 	}
 	var rootHandler = handlers.RootHandler{
 		URLService: shortURLServices,
@@ -23,11 +45,9 @@ func main() {
 	router.Get("/{id}", rootHandler.GetHandler)
 	router.Post("/", rootHandler.PostHandler)
 
-	err := http.ListenAndServe(`:8080`, router)
+	err := http.ListenAndServe(config.host, router)
 
 	if err != nil {
 		panic(err)
 	}
-
-	fmt.Println("Server started...")
 }
