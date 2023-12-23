@@ -1,9 +1,10 @@
 package services
 
 import (
-	"github.com/f0zze/shorter/internal/app/storage"
 	"math/rand"
 	"time"
+
+	"github.com/f0zze/shorter/internal/app/storage"
 )
 
 type ShortURLService struct {
@@ -19,10 +20,10 @@ func (service *ShortURLService) CreateNewShortURL(url string) string {
 	return service.ResultURL + "/" + urlID
 }
 
-func (service *ShortURLService) FindURLByID(shortURLID string) string {
-	url := service.Storage.Find(shortURLID)
+func (service *ShortURLService) FindURLByID(shortURLID string) (string, bool) {
+	url, ok := service.Storage.Find(shortURLID)
 
-	return url
+	return url, ok
 }
 
 func generateRandomString(length int) string {
