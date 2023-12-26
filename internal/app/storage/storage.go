@@ -10,9 +10,9 @@ func NewStorage() URLStorage {
 	}
 }
 
-func (s *URLStorage) Find(key string) string {
-	value := s.data[key]
-	return value
+func (s *URLStorage) Find(key string) (string, bool) {
+	value, ok := s.data[key]
+	return value, ok
 }
 
 func (s *URLStorage) Set(key string, value string) {

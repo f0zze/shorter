@@ -1,50 +1,29 @@
 package main
 
 import (
-	"flag"
+	"github.com/f0zze/shorter/internal/app/logger"
+	"net/http"
+
+	chi2 "github.com/go-chi/chi/v5"
+
+	"github.com/f0zze/shorter/cmd/cfg"
 	"github.com/f0zze/shorter/internal/app/handlers"
 	"github.com/f0zze/shorter/internal/app/services"
 	"github.com/f0zze/shorter/internal/app/storage"
-	chi2 "github.com/go-chi/chi/v5"
-	"net/http"
-	"os"
 )
 
-type ServerConfig struct {
-	host     string
-	response string
-}
-
-func getConfig() ServerConfig {
-	host := flag.String("a", "localhost:8080", "Server URL")
-	destHost := flag.String("b", "http://localhost:8080", "Response server URL")
-	flag.Parse()
-
-	config := ServerConfig{
-		*host,
-		*destHost,
-	}
-
-	if envRunAdd := os.Getenv("SERVER_ADDRESS"); envRunAdd != "" {
-		config.host = envRunAdd
-	}
-
-	if envBaseURL := os.Getenv("BASE_URL"); envBaseURL != "" {
-		config.response = envBaseURL
-	}
-
-	return config
-}
-
 func main() {
-	config := getConfig()
+	config := cfg.GetConfig()
 	runServer(config)
 }
 
-func runServer(config ServerConfig) {
+func runServer(config cfg.ServerConfig) {
+	l := logger.NewLogger(config.LogFilePath)
+	withLogging := logger.WithLogging(&l)
+
 	var urlStorage = storage.NewStorage()
 	var shortURLServices = services.ShortURLService{
-		ResultURL: config.response,
+		ResultURL: config.Response,
 		Storage:   urlStorage,
 	}
 	var rootHandler = handlers.RootHandler{
@@ -53,12 +32,12 @@ func runServer(config ServerConfig) {
 
 	router := chi2.NewRouter()
 
-	router.Get("/{id}", rootHandler.GetHandler)
-	router.Post("/", rootHandler.PostHandler)
+	router.Get("/{id}", withLogging(rootHandler.GetHandler))
+	router.Post("/", withLogging(rootHandler.PostHandler))
 
-	err := http.ListenAndServe(config.host, router)
-
+	err := http.ListenAndServe(config.Host, router)
+	l.Info().Msg("Server started")
 	if err != nil {
-		panic(err)
+		l.Fatal().Err(err).Msg("Server failed to start")
 	}
 }
