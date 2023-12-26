@@ -1,11 +1,12 @@
 package main
 
 import (
+	"github.com/f0zze/shorter/internal/app/logger"
 	"net/http"
 
 	chi2 "github.com/go-chi/chi/v5"
 
-	cfg "github.com/f0zze/shorter/cmd/cfg"
+	"github.com/f0zze/shorter/cmd/cfg"
 	"github.com/f0zze/shorter/internal/app/handlers"
 	"github.com/f0zze/shorter/internal/app/services"
 	"github.com/f0zze/shorter/internal/app/storage"
@@ -17,6 +18,9 @@ func main() {
 }
 
 func runServer(config cfg.ServerConfig) {
+	l := logger.NewLogger(config.LogFilePath)
+	withLogging := logger.WithLogging(&l)
+
 	var urlStorage = storage.NewStorage()
 	var shortURLServices = services.ShortURLService{
 		ResultURL: config.Response,
@@ -28,12 +32,12 @@ func runServer(config cfg.ServerConfig) {
 
 	router := chi2.NewRouter()
 
-	router.Get("/{id}", rootHandler.GetHandler)
-	router.Post("/", rootHandler.PostHandler)
+	router.Get("/{id}", withLogging(rootHandler.GetHandler))
+	router.Post("/", withLogging(rootHandler.PostHandler))
 
 	err := http.ListenAndServe(config.Host, router)
-
+	l.Info().Msg("Server started")
 	if err != nil {
-		panic(err)
+		l.Fatal().Err(err).Msg("Server failed to start")
 	}
 }

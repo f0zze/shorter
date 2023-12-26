@@ -6,8 +6,9 @@ import (
 )
 
 type ServerConfig struct {
-	Host     string
-	Response string
+	Host        string
+	Response    string
+	LogFilePath string
 }
 
 func GetConfig() ServerConfig {
@@ -18,6 +19,7 @@ func GetConfig() ServerConfig {
 	config := ServerConfig{
 		*host,
 		*destHost,
+		"server.log",
 	}
 
 	if envRunAdd := os.Getenv("SERVER_ADDRESS"); envRunAdd != "" {
