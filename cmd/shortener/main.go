@@ -30,10 +30,15 @@ func runServer(config cfg.ServerConfig) {
 		URLService: shortURLServices,
 	}
 
+	var shorten = handlers.ShortenHandler{
+		URLService: shortURLServices,
+	}
+
 	router := chi2.NewRouter()
 
 	router.Get("/{id}", withLogging(rootHandler.GetHandler))
 	router.Post("/", withLogging(rootHandler.PostHandler))
+	router.Post("/api/shorten", withLogging(shorten.Post))
 
 	err := http.ListenAndServe(config.Host, router)
 	l.Info().Msg("Server started")
