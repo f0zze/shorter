@@ -44,9 +44,9 @@ func (rootHandler *RootHandler) GetHandler(resp http.ResponseWriter, req *http.R
 		return
 	}
 
-	url := rootHandler.URLService.FindURLByID(urlID)
+	url, ok := rootHandler.URLService.FindURLByID(urlID)
 
-	if url == "" {
+	if !ok {
 		url = `http://localhost:8080`
 	}
 
