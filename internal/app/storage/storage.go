@@ -1,24 +1,27 @@
 package storage
 
+import "github.com/f0zze/shorter/cmd/cfg"
+
+type ShortURL struct {
+	UUID        string `json:"uuid"`
+	ShortURL    string `json:"short_Url"`
+	OriginalURL string `json:"original_Url"`
+}
+
 type URLStorage struct {
-	data map[string]string
+	data map[string]*ShortURL
 }
 
-func NewStorage() URLStorage {
-	return URLStorage{
-		data: make(map[string]string),
+type Storage interface {
+	Find(uuid string) (*ShortURL, bool)
+	Save(url *ShortURL) error
+	Size() int
+}
+
+func NewStorage(config *cfg.ServerConfig) (Storage, error) {
+	if config.LogFilePath == "" {
+		return NewInMemoryStorage()
 	}
-}
 
-func (s *URLStorage) Find(key string) (string, bool) {
-	value, ok := s.data[key]
-	return value, ok
-}
-
-func (s *URLStorage) Set(key string, value string) {
-	s.data[key] = value
-}
-
-func (s *URLStorage) Size() int {
-	return len(s.data)
+	return NewFileStorage(config.FileStoragePath)
 }
