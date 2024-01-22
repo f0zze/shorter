@@ -40,6 +40,10 @@ func (f *fileStorage) Size() int {
 	return len(f.inMemoryData)
 }
 
+func (f *fileStorage) Ping() bool {
+	return true
+}
+
 type Producer struct {
 	file   *os.File
 	writer *bufio.Writer

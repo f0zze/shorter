@@ -16,12 +16,17 @@ type Storage interface {
 	Find(uuid string) (*ShortURL, bool)
 	Save(url *ShortURL) error
 	Size() int
+	Ping() bool
 }
 
 func NewStorage(config *cfg.ServerConfig) (Storage, error) {
-	if config.LogFilePath == "" {
-		return NewInMemoryStorage()
+	if config.DSN != "" {
+		return NewPostgresStorage(config.DSN)
 	}
 
-	return NewFileStorage(config.FileStoragePath)
+	if config.LogFilePath != "" {
+		return NewFileStorage(config.FileStoragePath)
+	}
+
+	return NewInMemoryStorage()
 }

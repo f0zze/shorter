@@ -2,10 +2,9 @@ package main
 
 import (
 	"github.com/f0zze/shorter/internal/app/logger"
+	chi2 "github.com/go-chi/chi/v5"
 	"log"
 	"net/http"
-
-	chi2 "github.com/go-chi/chi/v5"
 
 	"github.com/f0zze/shorter/cmd/cfg"
 	"github.com/f0zze/shorter/internal/app/handlers"
@@ -41,11 +40,16 @@ func runServer(config cfg.ServerConfig) {
 		URLService: shortURLServices,
 	}
 
+	var pingHandler = handlers.PingHandler{
+		Storage: urlStorage,
+	}
+
 	router := chi2.NewRouter().With(middleware.GzipMiddleware())
 
 	router.Get("/{id}", withLogging(rootHandler.GetHandler))
 	router.Post("/", withLogging(rootHandler.PostHandler))
 	router.Post("/api/shorten", withLogging(shorten.Post))
+	router.Get("/ping", pingHandler.Get)
 
 	error := http.ListenAndServe(config.Host, router)
 	l.Info().Msg("Server started")

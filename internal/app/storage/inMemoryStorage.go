@@ -17,6 +17,10 @@ func (s *URLStorage) Save(url *ShortURL) error {
 	return nil
 }
 
+func (s *URLStorage) Ping() bool {
+	return true
+}
+
 func (s *URLStorage) Size() int {
 	return len(s.data)
 }
