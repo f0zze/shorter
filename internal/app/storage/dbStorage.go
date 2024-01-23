@@ -34,8 +34,13 @@ func (d *PostgresStorage) Find(_ string) (*ShortURL, bool) {
 	return nil, false
 }
 
-func (d *PostgresStorage) Save(_ *ShortURL) error {
-	return nil
+func (d *PostgresStorage) Save(url *ShortURL) error {
+	_, err := d.db.ExecContext(context.Background(), `
+		INSERT INTO urls (id, shorturl, originalurl) 
+		VALUES ($1, $2, $3)
+    `, url.UUID, url.ShortURL, url.OriginalURL)
+
+	return err
 }
 
 func (d *PostgresStorage) Size() int {
@@ -55,9 +60,9 @@ func (d *PostgresStorage) Close() error {
 func (d *PostgresStorage) CreateTables() error {
 	createTableQuery := `
 		CREATE TABLE IF NOT EXISTS urls (
-			id SERIAL PRIMARY KEY,
+			id VARCHAR(50) PRIMARY KEY,
 			shortUrl VARCHAR(50) UNIQUE NOT NULL,
-			originalUrl VARCHAR(50) UNIQUE NOT NULL
+			originalUrl VARCHAR(50) NOT NULL
 		)
 	`
 
