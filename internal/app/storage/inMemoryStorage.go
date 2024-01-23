@@ -24,3 +24,7 @@ func (s *URLStorage) Ping() bool {
 func (s *URLStorage) Size() int {
 	return len(s.data)
 }
+
+func (s *URLStorage) Close() error {
+	return nil
+}

@@ -44,6 +44,20 @@ func (f *fileStorage) Ping() bool {
 	return true
 }
 
+func (f *fileStorage) Close() error {
+	err := f.producer.Close()
+	if err != nil {
+		return err
+	}
+
+	err = f.consumer.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 type Producer struct {
 	file   *os.File
 	writer *bufio.Writer

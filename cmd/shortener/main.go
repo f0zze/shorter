@@ -28,6 +28,8 @@ func runServer(config cfg.ServerConfig) {
 		log.Fatal(err.Error())
 	}
 
+	defer urlStorage.Close()
+
 	var shortURLServices = services.ShortURLService{
 		ResultURL: config.Response,
 		Storage:   urlStorage,

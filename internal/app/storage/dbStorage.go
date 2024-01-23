@@ -17,7 +17,6 @@ func connect(dsn string) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
@@ -29,13 +28,6 @@ func connect(dsn string) (*sql.DB, error) {
 	return db, nil
 }
 
-//type Storage interface {
-//	Find(uuid string) (*ShortURL, bool)
-//	Save(url *ShortURL) error
-//	Size() int
-//	Ping() bool
-//}
-
 func (d *PostgresStorage) Find(_ string) (*ShortURL, bool) {
 	/*For now do noting*/
 
@@ -43,7 +35,6 @@ func (d *PostgresStorage) Find(_ string) (*ShortURL, bool) {
 }
 
 func (d *PostgresStorage) Save(_ *ShortURL) error {
-	/*For now do noting*/
 	return nil
 }
 
@@ -54,7 +45,25 @@ func (d *PostgresStorage) Size() int {
 func (d *PostgresStorage) Ping() bool {
 	err := d.db.Ping()
 
-	return err != nil
+	return err == nil
+}
+
+func (d *PostgresStorage) Close() error {
+	return d.db.Close()
+}
+
+func (d *PostgresStorage) CreateTables() error {
+	createTableQuery := `
+		CREATE TABLE IF NOT EXISTS urls (
+			id SERIAL PRIMARY KEY,
+			shortUrl VARCHAR(50) UNIQUE NOT NULL,
+			originalUrl VARCHAR(50) UNIQUE NOT NULL
+		)
+	`
+
+	_, err := d.db.Exec(createTableQuery)
+
+	return err
 }
 
 func NewPostgresStorage(dsn string) (Storage, error) {
@@ -64,7 +73,15 @@ func NewPostgresStorage(dsn string) (Storage, error) {
 		return nil, err
 	}
 
-	return &PostgresStorage{
+	storage := &PostgresStorage{
 		db,
-	}, nil
+	}
+
+	err = storage.CreateTables()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return storage, nil
 }

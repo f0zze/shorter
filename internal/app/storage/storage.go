@@ -17,6 +17,7 @@ type Storage interface {
 	Save(url *ShortURL) error
 	Size() int
 	Ping() bool
+	Close() error
 }
 
 func NewStorage(config *cfg.ServerConfig) (Storage, error) {
