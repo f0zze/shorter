@@ -13,11 +13,14 @@ import (
 )
 
 func TestPostHandler(t *testing.T) {
-	urlStorage := storage.NewStorage()
+	urlStorage, err := storage.NewInMemoryStorage()
+	if err != nil {
+		panic("Could not create in memory storage")
+	}
 	handlers := RootHandler{
 		URLService: struct {
 			ResultURL string
-			Storage   storage.URLStorage
+			Storage   storage.Storage
 		}{Storage: urlStorage, ResultURL: "http://localhost:8888"},
 	}
 
@@ -55,11 +58,16 @@ func TestPostHandler(t *testing.T) {
 }
 
 func TestGetHandler(t *testing.T) {
-	urlStorage := storage.NewStorage()
+	urlStorage, err := storage.NewInMemoryStorage()
+
+	if err != nil {
+		panic("Could not create in memory storage")
+	}
+
 	handlers := RootHandler{
 		URLService: struct {
 			ResultURL string
-			Storage   storage.URLStorage
+			Storage   storage.Storage
 		}{Storage: urlStorage, ResultURL: "http://localhost:2222"},
 	}
 	t.Run("should redirect to full url by requested id", func(t *testing.T) {

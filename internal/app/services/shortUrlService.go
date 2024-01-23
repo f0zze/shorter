@@ -1,28 +1,37 @@
 package services
 
 import (
-	"github.com/f0zze/shorter/internal/app/storage"
 	"math/rand"
 	"time"
+
+	"github.com/f0zze/shorter/internal/app/storage"
 )
 
 type ShortURLService struct {
 	ResultURL string
-	Storage   storage.URLStorage
+	Storage   storage.Storage
 }
 
-func (service *ShortURLService) CreateNewShortURL(url string) string {
+func (service *ShortURLService) CreateNewShortURL(originalURL string) string {
 	urlID := generateRandomString(5)
 
-	service.Storage.Set(urlID, url)
+	err := service.Storage.Save(&storage.ShortURL{
+		UUID:        urlID,
+		ShortURL:    urlID,
+		OriginalURL: originalURL,
+	})
+
+	if err != nil {
+		return ""
+	}
 
 	return service.ResultURL + "/" + urlID
 }
 
-func (service *ShortURLService) FindURLByID(shortURLID string) string {
-	url := service.Storage.Find(shortURLID)
+func (service *ShortURLService) FindOriginalURLByID(uuid string) (*storage.ShortURL, bool) {
+	url, ok := service.Storage.Find(uuid)
 
-	return url
+	return url, ok
 }
 
 func generateRandomString(length int) string {

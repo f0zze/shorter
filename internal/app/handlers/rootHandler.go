@@ -44,12 +44,14 @@ func (rootHandler *RootHandler) GetHandler(resp http.ResponseWriter, req *http.R
 		return
 	}
 
-	url := rootHandler.URLService.FindURLByID(urlID)
+	url, ok := rootHandler.URLService.FindOriginalURLByID(urlID)
 
-	if url == "" {
-		url = `http://localhost:8080`
+	redirectURL := `http://localhost:8080`
+
+	if ok {
+		redirectURL = url.OriginalURL
 	}
 
 	resp.Header().Add("Content-Type", "text/plain")
-	http.Redirect(resp, req, url, http.StatusTemporaryRedirect)
+	http.Redirect(resp, req, redirectURL, http.StatusTemporaryRedirect)
 }
