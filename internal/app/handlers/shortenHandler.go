@@ -20,7 +20,7 @@ type ShortenURL struct {
 }
 
 func (h *ShortenHandler) Batch(resp http.ResponseWriter, req *http.Request) {
-	var urls []models.BatchURL
+	var urls []models.OriginalURL
 
 	decoder := json.NewDecoder(req.Body)
 	decoder.DisallowUnknownFields()
@@ -30,9 +30,23 @@ func (h *ShortenHandler) Batch(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	h.URLService.Save(urls)
+	result, err := h.URLService.Create(urls)
 
+	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	json, err := json.Marshal(result)
+
+	if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	resp.Header().Add("Content-Type", "application/json")
 	resp.WriteHeader(http.StatusCreated)
+	resp.Write(json)
 }
 
 func (shortenHandler *ShortenHandler) Post(resp http.ResponseWriter, req *http.Request) {

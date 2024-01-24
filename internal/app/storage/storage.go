@@ -3,9 +3,10 @@ package storage
 import "github.com/f0zze/shorter/cmd/cfg"
 
 type ShortURL struct {
-	UUID        string `json:"uuid"`
-	ShortURL    string `json:"short_Url"`
-	OriginalURL string `json:"original_Url"`
+	UUID          string `json:"uuid"`
+	ShortURL      string `json:"short_Url"`
+	OriginalURL   string `json:"original_Url"`
+	CorrelationID string
 }
 
 type URLStorage struct {

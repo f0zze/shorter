@@ -28,26 +28,43 @@ func connect(dsn string) (*sql.DB, error) {
 	return db, nil
 }
 
-func (d *PostgresStorage) Find(_ string) (*ShortURL, bool) {
-	/*For now do noting*/
+func (d *PostgresStorage) Find(id string) (*ShortURL, bool) {
 
-	return nil, false
+	query := `
+			SELECT originalurl FROM urls WHERE shorturl = $1
+			`
+
+	result := &ShortURL{}
+	err := d.db.QueryRowContext(context.Background(), query, id).Scan(&result.OriginalURL)
+
+	if err != nil {
+		return nil, false
+	}
+
+	return result, true
 }
 
 func (d *PostgresStorage) Save(url []ShortURL) error {
 
+	tx, err := d.db.Begin()
+
+	if err != nil {
+		return err
+	}
+
 	for _, u := range url {
-		_, err := d.db.ExecContext(context.Background(), `
+		_, err := tx.ExecContext(context.Background(), `
 		INSERT INTO urls (id, shorturl, originalurl)
 		VALUES ($1, $2, $3)
     `, u.UUID, u.ShortURL, u.OriginalURL)
 
 		if err != nil {
+			tx.Rollback()
 			return err
 		}
 	}
 
-	return nil
+	return tx.Commit()
 }
 
 func (d *PostgresStorage) Size() int {

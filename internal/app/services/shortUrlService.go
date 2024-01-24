@@ -13,10 +13,44 @@ type ShortURLService struct {
 	Storage   storage.Storage
 }
 
-func (service *ShortURLService) CreateNewShortURL(originalURL string) string {
-	urlID := generateRandomString(5)
+func (s *ShortURLService) Create(urls []models.OriginalURL) ([]models.ShortURL, error) {
 
-	err := service.Storage.Save([]storage.ShortURL{storage.ShortURL{
+	var data []storage.ShortURL
+
+	for _, u := range urls {
+		uuid := NewUUID()
+		shortURL := NewShortURL()
+
+		data = append(data, storage.ShortURL{
+			UUID:          uuid,
+			ShortURL:      shortURL,
+			OriginalURL:   u.OriginalUrl,
+			CorrelationID: u.CorrelationId,
+		})
+	}
+
+	err := s.Storage.Save(data)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var result []models.ShortURL
+
+	for _, d := range data {
+		result = append(result, models.ShortURL{
+			ShortUrl:      s.ResultURL + "/" + d.ShortURL,
+			CorrelationId: d.CorrelationID,
+		})
+	}
+
+	return result, nil
+}
+
+func (s *ShortURLService) CreateNewShortURL(originalURL string) string {
+	urlID := NewShortURL()
+
+	err := s.Storage.Save([]storage.ShortURL{storage.ShortURL{
 		UUID:        urlID,
 		ShortURL:    urlID,
 		OriginalURL: originalURL,
@@ -26,27 +60,21 @@ func (service *ShortURLService) CreateNewShortURL(originalURL string) string {
 		return ""
 	}
 
-	return service.ResultURL + "/" + urlID
+	return s.ResultURL + "/" + urlID
 }
 
-func (service *ShortURLService) FindOriginalURLByID(uuid string) (*storage.ShortURL, bool) {
-	url, ok := service.Storage.Find(uuid)
+func (s *ShortURLService) FindOriginalURLByID(uuid string) (*storage.ShortURL, bool) {
+	url, ok := s.Storage.Find(uuid)
 
 	return url, ok
 }
 
-func (s *ShortURLService) Save(urlsDTO []models.BatchURL) error {
-	var urls []storage.ShortURL
+func NewUUID() string {
+	return generateRandomString(5)
+}
 
-	for _, d := range urlsDTO {
-		urls = append(urls, storage.ShortURL{
-			UUID:        generateRandomString(5),
-			ShortURL:    d.CorrelationId,
-			OriginalURL: d.OriginalUrl,
-		})
-	}
-
-	return s.Storage.Save(urls)
+func NewShortURL() string {
+	return generateRandomString(5)
 }
 
 func generateRandomString(length int) string {
