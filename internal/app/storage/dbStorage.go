@@ -34,13 +34,20 @@ func (d *PostgresStorage) Find(_ string) (*ShortURL, bool) {
 	return nil, false
 }
 
-func (d *PostgresStorage) Save(url *ShortURL) error {
-	_, err := d.db.ExecContext(context.Background(), `
-		INSERT INTO urls (id, shorturl, originalurl) 
-		VALUES ($1, $2, $3)
-    `, url.UUID, url.ShortURL, url.OriginalURL)
+func (d *PostgresStorage) Save(url []ShortURL) error {
 
-	return err
+	for _, u := range url {
+		_, err := d.db.ExecContext(context.Background(), `
+		INSERT INTO urls (id, shorturl, originalurl)
+		VALUES ($1, $2, $3)
+    `, u.UUID, u.ShortURL, u.OriginalURL)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (d *PostgresStorage) Size() int {

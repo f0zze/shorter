@@ -14,7 +14,7 @@ type URLStorage struct {
 
 type Storage interface {
 	Find(uuid string) (*ShortURL, bool)
-	Save(url *ShortURL) error
+	Save(url []ShortURL) error
 	Size() int
 	Ping() bool
 	Close() error

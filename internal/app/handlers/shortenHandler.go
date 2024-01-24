@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"github.com/f0zze/shorter/internal/app/models"
 	"github.com/f0zze/shorter/internal/app/services"
 	"net/http"
 )
@@ -16,6 +17,22 @@ type FullURL struct {
 
 type ShortenURL struct {
 	Result string `json:"result"`
+}
+
+func (h *ShortenHandler) Batch(resp http.ResponseWriter, req *http.Request) {
+	var urls []models.BatchURL
+
+	decoder := json.NewDecoder(req.Body)
+	decoder.DisallowUnknownFields()
+
+	if err := decoder.Decode(&urls); err != nil {
+		resp.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	h.URLService.Save(urls)
+
+	resp.WriteHeader(http.StatusCreated)
 }
 
 func (shortenHandler *ShortenHandler) Post(resp http.ResponseWriter, req *http.Request) {

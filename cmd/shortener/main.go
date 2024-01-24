@@ -51,6 +51,7 @@ func runServer(config cfg.ServerConfig) {
 	router.Get("/{id}", withLogging(rootHandler.GetHandler))
 	router.Post("/", withLogging(rootHandler.PostHandler))
 	router.Post("/api/shorten", withLogging(shorten.Post))
+	router.Post("/api/shorten/batch", withLogging(shorten.Batch))
 	router.Get("/ping", pingHandler.Get)
 
 	error := http.ListenAndServe(config.Host, router)

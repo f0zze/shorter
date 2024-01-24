@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/f0zze/shorter/internal/app/models"
 	"github.com/f0zze/shorter/internal/app/storage"
 )
 
@@ -15,11 +16,11 @@ type ShortURLService struct {
 func (service *ShortURLService) CreateNewShortURL(originalURL string) string {
 	urlID := generateRandomString(5)
 
-	err := service.Storage.Save(&storage.ShortURL{
+	err := service.Storage.Save([]storage.ShortURL{storage.ShortURL{
 		UUID:        urlID,
 		ShortURL:    urlID,
 		OriginalURL: originalURL,
-	})
+	}})
 
 	if err != nil {
 		return ""
@@ -32,6 +33,20 @@ func (service *ShortURLService) FindOriginalURLByID(uuid string) (*storage.Short
 	url, ok := service.Storage.Find(uuid)
 
 	return url, ok
+}
+
+func (s *ShortURLService) Save(urlsDTO []models.BatchURL) error {
+	var urls []storage.ShortURL
+
+	for _, d := range urlsDTO {
+		urls = append(urls, storage.ShortURL{
+			UUID:        generateRandomString(5),
+			ShortURL:    d.CorrelationId,
+			OriginalURL: d.OriginalUrl,
+		})
+	}
+
+	return s.Storage.Save(urls)
 }
 
 func generateRandomString(length int) string {
