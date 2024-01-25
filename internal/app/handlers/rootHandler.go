@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"errors"
 	"github.com/f0zze/shorter/internal/app/services"
+	"github.com/f0zze/shorter/internal/app/storage"
 	"github.com/go-chi/chi/v5"
 	"io"
 	"net/http"
@@ -30,13 +32,16 @@ func (rootHandler *RootHandler) PostHandler(resp http.ResponseWriter, req *http.
 
 	shortURL, err := rootHandler.URLService.CreateURL(url)
 
-	if err != nil {
+	status := http.StatusCreated
+	if errors.Is(err, storage.ErrConflict) {
+		status = http.StatusConflict
+	} else if err != nil {
 		resp.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	resp.Header().Add("Content-Type", "text/plain")
-	resp.WriteHeader(http.StatusCreated)
+	resp.WriteHeader(status)
 	resp.Write([]byte(shortURL))
 
 }

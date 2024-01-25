@@ -62,7 +62,6 @@ func (h *ShortenHandler) Post(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// TODO: handle other errors errors
 	shortURL, err := h.URLService.CreateURL(fullURL.URL)
 
 	status := http.StatusCreated
