@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/f0zze/shorter/internal/app/models"
 	"github.com/f0zze/shorter/internal/app/services"
+	"github.com/f0zze/shorter/internal/app/storage"
 	"net/http"
 )
 
@@ -30,7 +32,7 @@ func (h *ShortenHandler) Batch(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	result, err := h.URLService.Create(urls)
+	result, err := h.URLService.CreateBatch(urls)
 
 	if err != nil {
 		resp.WriteHeader(http.StatusInternalServerError)
@@ -49,7 +51,7 @@ func (h *ShortenHandler) Batch(resp http.ResponseWriter, req *http.Request) {
 	resp.Write(json)
 }
 
-func (shortenHandler *ShortenHandler) Post(resp http.ResponseWriter, req *http.Request) {
+func (h *ShortenHandler) Post(resp http.ResponseWriter, req *http.Request) {
 	fullURL := FullURL{}
 
 	decoder := json.NewDecoder(req.Body)
@@ -60,7 +62,14 @@ func (shortenHandler *ShortenHandler) Post(resp http.ResponseWriter, req *http.R
 		return
 	}
 
-	shortURL := shortenHandler.URLService.CreateNewShortURL(fullURL.URL)
+	// TODO: handle other errors errors
+	shortURL, err := h.URLService.Create(fullURL.URL)
+
+	status := http.StatusCreated
+	if errors.Is(err, storage.ErrConflict) {
+		status = http.StatusConflict
+	}
+
 	responseData := ShortenURL{shortURL}
 
 	shorter, err := json.Marshal(responseData)
@@ -70,6 +79,6 @@ func (shortenHandler *ShortenHandler) Post(resp http.ResponseWriter, req *http.R
 	}
 
 	resp.Header().Add("Content-Type", "application/json")
-	resp.WriteHeader(http.StatusCreated)
+	resp.WriteHeader(status)
 	resp.Write(shorter)
 }

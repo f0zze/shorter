@@ -3,6 +3,7 @@ package storage
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"os"
 )
 
@@ -32,7 +33,7 @@ func (f *fileStorage) Find(uuid string) (*ShortURL, bool) {
 	return nil, false
 }
 
-func (f *fileStorage) Save(url []ShortURL) error {
+func (f *fileStorage) Save(url []ShortURL, _ bool) error {
 	for _, u := range url {
 		err := f.producer.WriteEvent(&u)
 
@@ -63,6 +64,12 @@ func (f *fileStorage) Close() error {
 	}
 
 	return nil
+}
+
+func (f *fileStorage) FindShortURLBy(originalURL string) (string, error) {
+	// TODO implement logic
+	fmt.Print(originalURL)
+	return "", nil
 }
 
 type Producer struct {

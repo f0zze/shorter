@@ -1,11 +1,14 @@
 package services
 
 import (
+	"errors"
+	"github.com/jackc/pgx/v5/pgconn"
 	"math/rand"
 	"time"
 
 	"github.com/f0zze/shorter/internal/app/models"
 	"github.com/f0zze/shorter/internal/app/storage"
+	"github.com/jackc/pgerrcode"
 )
 
 type ShortURLService struct {
@@ -13,7 +16,7 @@ type ShortURLService struct {
 	Storage   storage.Storage
 }
 
-func (s *ShortURLService) Create(urls []models.OriginalURL) ([]models.ShortURL, error) {
+func (s *ShortURLService) CreateBatch(urls []models.OriginalURL) ([]models.ShortURL, error) {
 
 	var data []storage.ShortURL
 
@@ -24,12 +27,12 @@ func (s *ShortURLService) Create(urls []models.OriginalURL) ([]models.ShortURL, 
 		data = append(data, storage.ShortURL{
 			UUID:          uuid,
 			ShortURL:      shortURL,
-			OriginalURL:   u.OriginalUrl,
-			CorrelationID: u.CorrelationId,
+			OriginalURL:   u.OriginalURL,
+			CorrelationID: u.CorrelationID,
 		})
 	}
 
-	err := s.Storage.Save(data)
+	err := s.Storage.Save(data, false)
 
 	if err != nil {
 		return nil, err
@@ -39,28 +42,37 @@ func (s *ShortURLService) Create(urls []models.OriginalURL) ([]models.ShortURL, 
 
 	for _, d := range data {
 		result = append(result, models.ShortURL{
-			ShortUrl:      s.ResultURL + "/" + d.ShortURL,
-			CorrelationId: d.CorrelationID,
+			ShortURL:      s.ResultURL + "/" + d.ShortURL,
+			CorrelationID: d.CorrelationID,
 		})
 	}
 
 	return result, nil
 }
 
-func (s *ShortURLService) CreateNewShortURL(originalURL string) string {
+func (s *ShortURLService) Create(originalURL string) (string, error) {
 	urlID := NewShortURL()
 
 	err := s.Storage.Save([]storage.ShortURL{storage.ShortURL{
 		UUID:        urlID,
 		ShortURL:    urlID,
 		OriginalURL: originalURL,
-	}})
+	}}, true)
 
 	if err != nil {
-		return ""
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) {
+			result, err := s.Storage.FindShortURLBy(originalURL)
+
+			if err != nil {
+				return "", err
+			}
+
+			return s.ResultURL + "/" + result, storage.ErrConflict
+		}
 	}
 
-	return s.ResultURL + "/" + urlID
+	return s.ResultURL + "/" + urlID, err
 }
 
 func (s *ShortURLService) FindOriginalURLByID(uuid string) (*storage.ShortURL, bool) {
@@ -84,7 +96,7 @@ func generateRandomString(length int) string {
 	// Seed the random number generator
 	source := rand.NewSource(time.Now().UnixNano())
 	rng := rand.New(source)
-	// Create a byte slice to hold the random string
+	// CreateBatch a byte slice to hold the random string
 	randomString := make([]byte, length)
 
 	// Fill the byte slice with random characters from the URL-safe charset

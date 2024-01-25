@@ -30,9 +30,7 @@ func connect(dsn string) (*sql.DB, error) {
 
 func (d *PostgresStorage) Find(id string) (*ShortURL, bool) {
 
-	query := `
-			SELECT originalurl FROM urls WHERE shorturl = $1
-			`
+	query := `SELECT originalurl FROM urls WHERE shorturl = $1`
 
 	result := &ShortURL{}
 	err := d.db.QueryRowContext(context.Background(), query, id).Scan(&result.OriginalURL)
@@ -44,19 +42,21 @@ func (d *PostgresStorage) Find(id string) (*ShortURL, bool) {
 	return result, true
 }
 
-func (d *PostgresStorage) Save(url []ShortURL) error {
+func (d *PostgresStorage) Save(url []ShortURL, strict bool) error {
 
 	tx, err := d.db.Begin()
 
 	if err != nil {
 		return err
 	}
+	query := `INSERT INTO urls (id, shorturl, originalurl) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`
+
+	if strict {
+		query = `INSERT INTO urls (id, shorturl, originalurl) VALUES ($1, $2, $3)`
+	}
 
 	for _, u := range url {
-		_, err := tx.ExecContext(context.Background(), `
-		INSERT INTO urls (id, shorturl, originalurl)
-		VALUES ($1, $2, $3)
-    `, u.UUID, u.ShortURL, u.OriginalURL)
+		_, err := tx.ExecContext(context.Background(), query, u.UUID, u.ShortURL, u.OriginalURL)
 
 		if err != nil {
 			tx.Rollback()
@@ -81,12 +81,26 @@ func (d *PostgresStorage) Close() error {
 	return d.db.Close()
 }
 
+func (d *PostgresStorage) FindShortURLBy(originalURL string) (string, error) {
+
+	var shortURL string
+	query := `SELECT shorturl FROM urls WHERE originalurl = $1`
+
+	err := d.db.QueryRowContext(context.Background(), query, originalURL).Scan(&shortURL)
+
+	if err != nil {
+		return "", err
+	}
+
+	return shortURL, nil
+}
+
 func (d *PostgresStorage) CreateTables() error {
 	createTableQuery := `
 		CREATE TABLE IF NOT EXISTS urls (
 			id VARCHAR(50) PRIMARY KEY,
 			shortUrl VARCHAR(50) UNIQUE NOT NULL,
-			originalUrl VARCHAR(50) NOT NULL
+			originalUrl VARCHAR(50) UNIQUE NOT NULL
 		)
 	`
 

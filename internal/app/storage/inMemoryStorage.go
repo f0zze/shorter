@@ -1,5 +1,7 @@
 package storage
 
+import "fmt"
+
 func NewInMemoryStorage() (Storage, error) {
 	return &URLStorage{
 		data: make(map[string]*ShortURL),
@@ -11,7 +13,7 @@ func (s *URLStorage) Find(uuid string) (*ShortURL, bool) {
 	return value, ok
 }
 
-func (s *URLStorage) Save(url []ShortURL) error {
+func (s *URLStorage) Save(url []ShortURL, _ bool) error {
 	for _, u := range url {
 		s.data[u.UUID] = &u
 	}
@@ -29,4 +31,10 @@ func (s *URLStorage) Size() int {
 
 func (s *URLStorage) Close() error {
 	return nil
+}
+
+func (s *URLStorage) FindShortURLBy(originalURL string) (string, error) {
+	// TODO implement logic
+	fmt.Print(originalURL)
+	return "", nil
 }

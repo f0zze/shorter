@@ -1,6 +1,9 @@
 package storage
 
-import "github.com/f0zze/shorter/cmd/cfg"
+import (
+	"errors"
+	"github.com/f0zze/shorter/cmd/cfg"
+)
 
 type ShortURL struct {
 	UUID          string `json:"uuid"`
@@ -13,12 +16,15 @@ type URLStorage struct {
 	data map[string]*ShortURL
 }
 
+var ErrConflict = errors.New("data conflict")
+
 type Storage interface {
 	Find(uuid string) (*ShortURL, bool)
-	Save(url []ShortURL) error
+	Save(url []ShortURL, strict bool) error
 	Size() int
 	Ping() bool
 	Close() error
+	FindShortURLBy(originalURL string) (string, error)
 }
 
 func NewStorage(config *cfg.ServerConfig) (Storage, error) {
