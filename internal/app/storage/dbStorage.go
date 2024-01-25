@@ -42,18 +42,18 @@ func (d *PostgresStorage) Find(id string) (*ShortURL, bool) {
 	return result, true
 }
 
-func (d *PostgresStorage) Save(url []ShortURL, strict bool) error {
+func (d *PostgresStorage) Save(url []ShortURL, _ bool) error {
 
 	tx, err := d.db.Begin()
 
 	if err != nil {
 		return err
 	}
-	query := `INSERT INTO urls (id, shorturl, originalurl) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`
+	query := `-- INSERT INTO urls (id, shorturl, originalurl) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`
 
-	if strict {
-		query = `INSERT INTO urls (id, shorturl, originalurl) VALUES ($1, $2, $3)`
-	}
+	//if strict {
+	query = `INSERT INTO urls (id, shorturl, originalurl) VALUES ($1, $2, $3)`
+	//}
 
 	for _, u := range url {
 		_, err := tx.ExecContext(context.Background(), query, u.UUID, u.ShortURL, u.OriginalURL)

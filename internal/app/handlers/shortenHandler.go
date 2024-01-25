@@ -32,7 +32,7 @@ func (h *ShortenHandler) Batch(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	result, err := h.URLService.CreateBatch(urls)
+	result, err := h.URLService.CreateURLs(urls)
 
 	if err != nil {
 		resp.WriteHeader(http.StatusInternalServerError)
@@ -63,7 +63,7 @@ func (h *ShortenHandler) Post(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	// TODO: handle other errors errors
-	shortURL, err := h.URLService.Create(fullURL.URL)
+	shortURL, err := h.URLService.CreateURL(fullURL.URL)
 
 	status := http.StatusCreated
 	if errors.Is(err, storage.ErrConflict) {

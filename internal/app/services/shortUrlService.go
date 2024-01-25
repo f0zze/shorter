@@ -16,7 +16,7 @@ type ShortURLService struct {
 	Storage   storage.Storage
 }
 
-func (s *ShortURLService) CreateBatch(urls []models.OriginalURL) ([]models.ShortURL, error) {
+func (s *ShortURLService) CreateURLs(urls []models.OriginalURL) ([]models.ShortURL, error) {
 
 	var data []storage.ShortURL
 
@@ -50,7 +50,7 @@ func (s *ShortURLService) CreateBatch(urls []models.OriginalURL) ([]models.Short
 	return result, nil
 }
 
-func (s *ShortURLService) Create(originalURL string) (string, error) {
+func (s *ShortURLService) CreateURL(originalURL string) (string, error) {
 	urlID := NewShortURL()
 
 	err := s.Storage.Save([]storage.ShortURL{storage.ShortURL{
@@ -96,7 +96,7 @@ func generateRandomString(length int) string {
 	// Seed the random number generator
 	source := rand.NewSource(time.Now().UnixNano())
 	rng := rand.New(source)
-	// CreateBatch a byte slice to hold the random string
+	// CreateURLs a byte slice to hold the random string
 	randomString := make([]byte, length)
 
 	// Fill the byte slice with random characters from the URL-safe charset

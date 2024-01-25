@@ -28,7 +28,7 @@ func (rootHandler *RootHandler) PostHandler(resp http.ResponseWriter, req *http.
 		return
 	}
 
-	shortURL, err := rootHandler.URLService.Create(url)
+	shortURL, err := rootHandler.URLService.CreateURL(url)
 
 	if err != nil {
 		resp.WriteHeader(http.StatusInternalServerError)
