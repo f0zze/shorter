@@ -49,7 +49,7 @@ func (rootHandler *RootHandler) GetHandler(resp http.ResponseWriter, req *http.R
 		return
 	}
 
-	url, ok := rootHandler.URLService.FindOriginalURLByID(urlID)
+	url, ok := rootHandler.URLService.FindURL(urlID)
 
 	redirectURL := `http://localhost:8080`
 

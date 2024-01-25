@@ -75,7 +75,7 @@ func (s *ShortURLService) Create(originalURL string) (string, error) {
 	return s.ResultURL + "/" + urlID, err
 }
 
-func (s *ShortURLService) FindOriginalURLByID(uuid string) (*storage.ShortURL, bool) {
+func (s *ShortURLService) FindURL(uuid string) (*storage.ShortURL, bool) {
 	url, ok := s.Storage.Find(uuid)
 
 	return url, ok
