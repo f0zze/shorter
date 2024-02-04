@@ -1,10 +1,14 @@
 package services
 
 import (
+	"errors"
+	"github.com/jackc/pgx/v5/pgconn"
 	"math/rand"
 	"time"
 
+	"github.com/f0zze/shorter/internal/app/models"
 	"github.com/f0zze/shorter/internal/app/storage"
+	"github.com/jackc/pgerrcode"
 )
 
 type ShortURLService struct {
@@ -12,26 +16,77 @@ type ShortURLService struct {
 	Storage   storage.Storage
 }
 
-func (service *ShortURLService) CreateNewShortURL(originalURL string) string {
-	urlID := generateRandomString(5)
+func (s *ShortURLService) CreateURLs(urls []models.OriginalURL) ([]models.ShortURL, error) {
 
-	err := service.Storage.Save(&storage.ShortURL{
+	var data []storage.ShortURL
+
+	for _, u := range urls {
+		uuid := NewUUID()
+		shortURL := NewShortURL()
+
+		data = append(data, storage.ShortURL{
+			UUID:          uuid,
+			ShortURL:      shortURL,
+			OriginalURL:   u.OriginalURL,
+			CorrelationID: u.CorrelationID,
+		})
+	}
+
+	err := s.Storage.Save(data, false)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var result []models.ShortURL
+
+	for _, d := range data {
+		result = append(result, models.ShortURL{
+			ShortURL:      s.ResultURL + "/" + d.ShortURL,
+			CorrelationID: d.CorrelationID,
+		})
+	}
+
+	return result, nil
+}
+
+func (s *ShortURLService) CreateURL(originalURL string) (string, error) {
+	urlID := NewShortURL()
+
+	err := s.Storage.Save([]storage.ShortURL{storage.ShortURL{
 		UUID:        urlID,
 		ShortURL:    urlID,
 		OriginalURL: originalURL,
-	})
+	}}, true)
 
 	if err != nil {
-		return ""
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) {
+			result, err := s.Storage.FindShortURLBy(originalURL)
+
+			if err != nil {
+				return "", err
+			}
+
+			return s.ResultURL + "/" + result, storage.ErrConflict
+		}
 	}
 
-	return service.ResultURL + "/" + urlID
+	return s.ResultURL + "/" + urlID, err
 }
 
-func (service *ShortURLService) FindOriginalURLByID(uuid string) (*storage.ShortURL, bool) {
-	url, ok := service.Storage.Find(uuid)
+func (s *ShortURLService) FindURL(uuid string) (*storage.ShortURL, bool) {
+	url, ok := s.Storage.Find(uuid)
 
 	return url, ok
+}
+
+func NewUUID() string {
+	return generateRandomString(5)
+}
+
+func NewShortURL() string {
+	return generateRandomString(5)
 }
 
 func generateRandomString(length int) string {
@@ -41,7 +96,7 @@ func generateRandomString(length int) string {
 	// Seed the random number generator
 	source := rand.NewSource(time.Now().UnixNano())
 	rng := rand.New(source)
-	// Create a byte slice to hold the random string
+	// CreateURLs a byte slice to hold the random string
 	randomString := make([]byte, length)
 
 	// Fill the byte slice with random characters from the URL-safe charset

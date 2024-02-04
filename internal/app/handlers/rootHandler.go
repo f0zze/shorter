@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"errors"
 	"github.com/f0zze/shorter/internal/app/services"
+	"github.com/f0zze/shorter/internal/app/storage"
 	"github.com/go-chi/chi/v5"
 	"io"
 	"net/http"
@@ -28,10 +30,18 @@ func (rootHandler *RootHandler) PostHandler(resp http.ResponseWriter, req *http.
 		return
 	}
 
-	shortURL := rootHandler.URLService.CreateNewShortURL(url)
+	shortURL, err := rootHandler.URLService.CreateURL(url)
+
+	status := http.StatusCreated
+	if errors.Is(err, storage.ErrConflict) {
+		status = http.StatusConflict
+	} else if err != nil {
+		resp.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	resp.Header().Add("Content-Type", "text/plain")
-	resp.WriteHeader(http.StatusCreated)
+	resp.WriteHeader(status)
 	resp.Write([]byte(shortURL))
 
 }
@@ -44,7 +54,7 @@ func (rootHandler *RootHandler) GetHandler(resp http.ResponseWriter, req *http.R
 		return
 	}
 
-	url, ok := rootHandler.URLService.FindOriginalURLByID(urlID)
+	url, ok := rootHandler.URLService.FindURL(urlID)
 
 	redirectURL := `http://localhost:8080`
 

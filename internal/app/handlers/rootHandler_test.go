@@ -72,7 +72,7 @@ func TestGetHandler(t *testing.T) {
 	}
 	t.Run("should redirect to full url by requested id", func(t *testing.T) {
 		urlToSave := "https://yandex.ru"
-		url := handlers.URLService.CreateNewShortURL(urlToSave)
+		url, _ := handlers.URLService.CreateURL(urlToSave)
 		urlID := strings.Split(url, "/")[3]
 
 		request := httptest.NewRequest(http.MethodGet, "/{id}", nil)
