@@ -14,8 +14,8 @@ func WithAuth() func(next http.Handler) http.Handler {
 			tokenString, err := r.Cookie("Authorization")
 
 			if err != nil {
-				newUserID := services.NewUUID()
-				token, err := services.BuildJWTString(newUserID)
+				//newUserID := services.NewUUID()
+				token, err := services.BuildJWTString("123")
 
 				if err != nil {
 					w.WriteHeader(http.StatusInternalServerError)
@@ -31,7 +31,7 @@ func WithAuth() func(next http.Handler) http.Handler {
 				}
 
 				http.SetCookie(w, &cookie)
-				ctx := context.WithValue(r.Context(), app.UserIDContext, newUserID)
+				ctx := context.WithValue(r.Context(), app.UserIDContext, "123")
 				next.ServeHTTP(w, r.WithContext(ctx))
 
 				return
@@ -41,11 +41,6 @@ func WithAuth() func(next http.Handler) http.Handler {
 
 			if err != nil {
 				w.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-
-			if userID == "" {
-				w.WriteHeader(http.StatusAlreadyReported)
 				return
 			}
 
