@@ -23,7 +23,6 @@ func WithAuth() func(next http.Handler) http.Handler {
 					return
 				}
 
-				// Create a new cookie with the token
 				cookie := http.Cookie{
 					Name:     "Authorization",
 					Value:    token,
@@ -35,18 +34,19 @@ func WithAuth() func(next http.Handler) http.Handler {
 				http.SetCookie(w, &cookie)
 				ctx := context.WithValue(r.Context(), app.UserIDContext, newUserID)
 				next.ServeHTTP(w, r.WithContext(ctx))
-			} else {
-				userID := services.GetUserID(tokenString.Value)
 
-				if userID == "" {
-					w.WriteHeader(http.StatusUnauthorized)
-					return
-				}
-
-				ctx := context.WithValue(r.Context(), app.UserIDContext, userID)
-				next.ServeHTTP(w, r.WithContext(ctx))
+				return
 			}
 
+			userID, err := services.GetUserID(tokenString.Value)
+
+			if err != nil {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+
+			ctx := context.WithValue(r.Context(), app.UserIDContext, userID)
+			next.ServeHTTP(w, r.WithContext(ctx))
 		}
 
 		return http.HandlerFunc(fn)

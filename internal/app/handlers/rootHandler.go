@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"github.com/f0zze/shorter/internal/app"
 	"io"
 	"net/http"
 
@@ -32,7 +33,7 @@ func (rootHandler *RootHandler) PostHandler(resp http.ResponseWriter, req *http.
 		return
 	}
 
-	userID := req.Context().Value("userID").(string)
+	userID := req.Context().Value(app.UserIDContext).(string)
 	shortURL, err := rootHandler.URLService.CreateURL(url, userID)
 
 	status := http.StatusCreated

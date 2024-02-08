@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"github.com/f0zze/shorter/internal/app"
 	"net/http"
 
 	"github.com/f0zze/shorter/internal/app/services"
@@ -14,7 +15,7 @@ type UserHandler struct {
 }
 
 func (u *UserHandler) Urls(resp http.ResponseWriter, req *http.Request) {
-	userID := req.Context().Value("userID").(string)
+	userID := req.Context().Value(app.UserIDContext).(string)
 
 	list, _ := u.Service.FindByUser(userID)
 
