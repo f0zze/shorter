@@ -24,7 +24,7 @@ var ErrConflict = errors.New("data conflict")
 type Storage interface {
 	Find(uuid string) (*ShortURL, bool)
 	FindByUserID(id string) ([]entity.Shorter, error)
-	Save(url []ShortURL, strict bool) error
+	Save(url []ShortURL) error
 	Size() int
 	Ping() bool
 	Close() error

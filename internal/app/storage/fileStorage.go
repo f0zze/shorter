@@ -39,7 +39,7 @@ func (f *fileStorage) Find(uuid string) (*ShortURL, bool) {
 	return nil, false
 }
 
-func (f *fileStorage) Save(url []ShortURL, _ bool) error {
+func (f *fileStorage) Save(url []ShortURL) error {
 	for _, u := range url {
 		err := f.producer.WriteEvent(&u)
 

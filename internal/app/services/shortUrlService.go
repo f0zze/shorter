@@ -16,7 +16,7 @@ type ShortURLService struct {
 	Storage   storage.Storage
 }
 
-func (s *ShortURLService) CreateURLs(urls []models.OriginalURL) ([]models.ShortURL, error) {
+func (s *ShortURLService) CreateURLs(urls []models.OriginalURL, userID string) ([]models.ShortURL, error) {
 
 	var data []storage.ShortURL
 
@@ -29,10 +29,11 @@ func (s *ShortURLService) CreateURLs(urls []models.OriginalURL) ([]models.ShortU
 			ShortURL:      shortURL,
 			OriginalURL:   u.OriginalURL,
 			CorrelationID: u.CorrelationID,
+			UserID:        userID,
 		})
 	}
 
-	err := s.Storage.Save(data, false)
+	err := s.Storage.Save(data)
 
 	if err != nil {
 		return nil, err
@@ -58,7 +59,7 @@ func (s *ShortURLService) CreateURL(originalURL string, userID string) (string, 
 		ShortURL:    urlID,
 		OriginalURL: originalURL,
 		UserID:      userID,
-	}}, true)
+	}})
 
 	if err != nil {
 		var pgErr *pgconn.PgError

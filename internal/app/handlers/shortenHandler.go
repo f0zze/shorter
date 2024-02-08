@@ -34,7 +34,8 @@ func (h *ShortenHandler) Batch(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	result, err := h.URLService.CreateURLs(urls)
+	userID := req.Context().Value(app.UserIDContext).(string)
+	result, err := h.URLService.CreateURLs(urls, userID)
 
 	if err != nil {
 		resp.WriteHeader(http.StatusInternalServerError)

@@ -71,7 +71,7 @@ func (d *PostgresStorage) FindByUserID(id string) ([]entity.Shorter, error) {
 	return list, nil
 }
 
-func (d *PostgresStorage) Save(url []ShortURL, _ bool) error {
+func (d *PostgresStorage) Save(url []ShortURL) error {
 
 	tx, err := d.db.Begin()
 

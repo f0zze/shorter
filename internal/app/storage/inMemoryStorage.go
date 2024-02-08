@@ -17,7 +17,7 @@ func (s *URLStorage) Find(uuid string) (*ShortURL, bool) {
 	return value, ok
 }
 
-func (s *URLStorage) Save(url []ShortURL, _ bool) error {
+func (s *URLStorage) Save(url []ShortURL) error {
 	for _, u := range url {
 		s.data[u.UUID] = &u
 	}
