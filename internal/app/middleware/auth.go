@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"context"
+	"github.com/f0zze/shorter/internal/app"
 	"net/http"
 )
 
@@ -40,8 +42,8 @@ func WithAuth() func(next http.Handler) http.Handler {
 			//	return
 			//}
 			//
-			//ctx := context.WithValue(r.Context(), app.UserIDContext, userID)
-			next.ServeHTTP(w, r)
+			ctx := context.WithValue(r.Context(), app.UserIDContext, "testid")
+			next.ServeHTTP(w, r.WithContext(ctx))
 		}
 
 		return http.HandlerFunc(fn)
