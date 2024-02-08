@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+
 	"github.com/f0zze/shorter/internal/app/entity"
 )
 

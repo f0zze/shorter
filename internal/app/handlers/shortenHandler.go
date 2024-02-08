@@ -3,10 +3,11 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"net/http"
+
 	"github.com/f0zze/shorter/internal/app/models"
 	"github.com/f0zze/shorter/internal/app/services"
 	"github.com/f0zze/shorter/internal/app/storage"
-	"net/http"
 )
 
 type ShortenHandler struct {

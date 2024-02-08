@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"github.com/f0zze/shorter/internal/app"
 	"github.com/f0zze/shorter/internal/app/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
@@ -29,7 +30,7 @@ func TestPostHandler(t *testing.T) {
 		mockUserID := "mockUserID"
 
 		// Create a context with the mock user ID
-		ctx := context.WithValue(context.Background(), "userID", mockUserID)
+		ctx := context.WithValue(context.Background(), app.UserIDContext, mockUserID)
 
 		// Create a request with the mock context
 		request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("https://yandex.ru"))
@@ -56,7 +57,7 @@ func TestPostHandler(t *testing.T) {
 		mockUserID := "mockUserID"
 
 		// Create a context with the mock user ID
-		ctx := context.WithValue(context.Background(), "userID", mockUserID)
+		ctx := context.WithValue(context.Background(), app.UserIDContext, mockUserID)
 
 		request := httptest.NewRequest(http.MethodPost, "/", nil)
 		record := httptest.NewRecorder()

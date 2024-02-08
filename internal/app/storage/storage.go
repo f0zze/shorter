@@ -2,6 +2,7 @@ package storage
 
 import (
 	"errors"
+
 	"github.com/f0zze/shorter/cmd/cfg"
 	"github.com/f0zze/shorter/internal/app/entity"
 )

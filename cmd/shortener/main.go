@@ -1,13 +1,14 @@
 package main
 
 import (
-	"github.com/f0zze/shorter/internal/app/logger"
-	chi2 "github.com/go-chi/chi/v5"
 	"log"
 	"net/http"
 
+	chi2 "github.com/go-chi/chi/v5"
+
 	"github.com/f0zze/shorter/cmd/cfg"
 	"github.com/f0zze/shorter/internal/app/handlers"
+	"github.com/f0zze/shorter/internal/app/logger"
 	"github.com/f0zze/shorter/internal/app/middleware"
 	"github.com/f0zze/shorter/internal/app/services"
 	"github.com/f0zze/shorter/internal/app/storage"

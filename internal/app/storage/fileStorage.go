@@ -4,8 +4,9 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"github.com/f0zze/shorter/internal/app/entity"
 	"os"
+
+	"github.com/f0zze/shorter/internal/app/entity"
 )
 
 type fileStorage struct {

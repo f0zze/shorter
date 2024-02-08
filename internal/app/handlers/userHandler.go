@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	json "encoding/json"
+	"encoding/json"
+	"net/http"
+
 	"github.com/f0zze/shorter/internal/app/services"
 	"github.com/f0zze/shorter/internal/app/storage"
-	"net/http"
 )
 
 type UserHandler struct {

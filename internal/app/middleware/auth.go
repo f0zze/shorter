@@ -2,20 +2,17 @@ package middleware
 
 import (
 	"context"
-	"github.com/f0zze/shorter/internal/app/services"
 	"net/http"
 	"time"
+
+	"github.com/f0zze/shorter/internal/app"
+	"github.com/f0zze/shorter/internal/app/services"
 )
 
 func WithAuth() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			tokenString, err := r.Cookie("Authorization")
-
-			if r.URL.Path != "/" && tokenString == nil {
-				w.WriteHeader(http.StatusUnauthorized)
-				return
-			}
 
 			if err != nil {
 				newUserID := services.NewUUID()
@@ -30,23 +27,23 @@ func WithAuth() func(next http.Handler) http.Handler {
 				cookie := http.Cookie{
 					Name:     "Authorization",
 					Value:    token,
-					Expires:  time.Now().Add(24 * time.Hour), // Set the expiration time for the cookie
+					Expires:  time.Now().Add(24 * time.Hour),
 					HttpOnly: true,
 					Path:     "/",
 				}
 
 				http.SetCookie(w, &cookie)
-				ctx := context.WithValue(r.Context(), "userID", newUserID)
+				ctx := context.WithValue(r.Context(), app.UserIDContext, newUserID)
 				next.ServeHTTP(w, r.WithContext(ctx))
 			} else {
-				userID := services.GetUserId(tokenString.Value)
+				userID := services.GetUserID(tokenString.Value)
 
 				if userID == "" {
 					w.WriteHeader(http.StatusUnauthorized)
 					return
 				}
 
-				ctx := context.WithValue(r.Context(), "userID", userID)
+				ctx := context.WithValue(r.Context(), app.UserIDContext, userID)
 				next.ServeHTTP(w, r.WithContext(ctx))
 			}
 

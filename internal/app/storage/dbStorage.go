@@ -3,10 +3,11 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"github.com/f0zze/shorter/internal/app/entity"
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+
+	"github.com/f0zze/shorter/internal/app/entity"
 )
 
 type PostgresStorage struct {

@@ -82,8 +82,8 @@ func (s *ShortURLService) FindURL(uuid string) (*storage.ShortURL, bool) {
 	return url, ok
 }
 
-func (s *ShortURLService) FindByUser(userId string) ([]models.UserShorter, error) {
-	urls, err := s.Storage.FindByUserID(userId)
+func (s *ShortURLService) FindByUser(userID string) ([]models.UserShorter, error) {
+	urls, err := s.Storage.FindByUserID(userID)
 
 	if err != nil {
 		return nil, err
