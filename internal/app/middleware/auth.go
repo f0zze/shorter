@@ -13,7 +13,7 @@ func WithAuth() func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			tokenString, err := r.Cookie("Authorization")
 
-			if err != nil {
+			if err != nil && r.URL.Path != "/api/user/urls" {
 				//newUserID := services.NewUUID()
 				token, err := services.BuildJWTString("123")
 
