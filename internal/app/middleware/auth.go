@@ -11,7 +11,7 @@ import (
 func WithAuth() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			_, err := r.Cookie("Authorization")
+			tokenString, err := r.Cookie("Authorization")
 
 			if err != nil {
 				newUserID := services.NewUUID()
@@ -37,15 +37,20 @@ func WithAuth() func(next http.Handler) http.Handler {
 				return
 			}
 
-			//userID, err := services.GetUserID(tokenString.Value)
-			//
-			//if err != nil {
-			//	w.WriteHeader(http.StatusUnauthorized)
-			//	return
-			//}
+			userID, err := services.GetUserID(tokenString.Value)
 
-			//ctx := context.WithValue(r.Context(), app.UserIDContext, "justForTest")
-			next.ServeHTTP(w, r)
+			if err != nil {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+
+			if userID == "" {
+				w.WriteHeader(http.StatusAlreadyReported)
+				return
+			}
+
+			ctx := context.WithValue(r.Context(), app.UserIDContext, userID)
+			next.ServeHTTP(w, r.WithContext(ctx))
 		}
 
 		return http.HandlerFunc(fn)
