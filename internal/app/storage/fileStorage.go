@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/f0zze/shorter/internal/app/entity"
 	"os"
 )
 
@@ -11,6 +12,10 @@ type fileStorage struct {
 	consumer     *Consumer
 	producer     *Producer
 	inMemoryData map[string]*ShortURL
+}
+
+func (f *fileStorage) FindByUserID(_ string) ([]entity.Shorter, error) {
+	return []entity.Shorter{}, nil
 }
 
 func (f *fileStorage) Find(uuid string) (*ShortURL, bool) {

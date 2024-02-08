@@ -50,13 +50,14 @@ func (s *ShortURLService) CreateURLs(urls []models.OriginalURL) ([]models.ShortU
 	return result, nil
 }
 
-func (s *ShortURLService) CreateURL(originalURL string) (string, error) {
+func (s *ShortURLService) CreateURL(originalURL string, userID string) (string, error) {
 	urlID := NewShortURL()
 
 	err := s.Storage.Save([]storage.ShortURL{storage.ShortURL{
 		UUID:        urlID,
 		ShortURL:    urlID,
 		OriginalURL: originalURL,
+		UserID:      userID,
 	}}, true)
 
 	if err != nil {
@@ -79,6 +80,26 @@ func (s *ShortURLService) FindURL(uuid string) (*storage.ShortURL, bool) {
 	url, ok := s.Storage.Find(uuid)
 
 	return url, ok
+}
+
+func (s *ShortURLService) FindByUser(userId string) ([]models.UserShorter, error) {
+	urls, err := s.Storage.FindByUserID(userId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var result []models.UserShorter
+
+	for _, v := range urls {
+		result = append(result, models.UserShorter{OriginalURL: v.OriginalURL, ShortURL: s.addOrigin(v.ShortURL)})
+	}
+
+	return result, nil
+}
+
+func (s *ShortURLService) addOrigin(shortURL string) string {
+	return s.ResultURL + "/" + shortURL
 }
 
 func NewUUID() string {

@@ -62,7 +62,8 @@ func (h *ShortenHandler) Post(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	shortURL, err := h.URLService.CreateURL(fullURL.URL)
+	userID := req.Context().Value("userID").(string)
+	shortURL, err := h.URLService.CreateURL(fullURL.URL, userID)
 
 	status := http.StatusCreated
 	if errors.Is(err, storage.ErrConflict) {

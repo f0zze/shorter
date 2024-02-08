@@ -30,7 +30,8 @@ func (rootHandler *RootHandler) PostHandler(resp http.ResponseWriter, req *http.
 		return
 	}
 
-	shortURL, err := rootHandler.URLService.CreateURL(url)
+	userID := req.Context().Value("userID").(string)
+	shortURL, err := rootHandler.URLService.CreateURL(url, userID)
 
 	status := http.StatusCreated
 	if errors.Is(err, storage.ErrConflict) {

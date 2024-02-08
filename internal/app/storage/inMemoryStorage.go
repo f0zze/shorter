@@ -1,6 +1,9 @@
 package storage
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/f0zze/shorter/internal/app/entity"
+)
 
 func NewInMemoryStorage() (Storage, error) {
 	return &URLStorage{
@@ -19,6 +22,10 @@ func (s *URLStorage) Save(url []ShortURL, _ bool) error {
 	}
 
 	return nil
+}
+
+func (s *URLStorage) FindByUserID(_ string) ([]entity.Shorter, error) {
+	return []entity.Shorter{}, nil
 }
 
 func (s *URLStorage) Ping() bool {
