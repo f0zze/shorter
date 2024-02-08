@@ -10,7 +10,7 @@ type PingHandler struct {
 	Storage storage.Storage
 }
 
-func (h *PingHandler) Get(resp http.ResponseWriter, req *http.Request) {
+func (h *PingHandler) Get(resp http.ResponseWriter) {
 	hasConnection := h.Storage.Ping()
 
 	if hasConnection {

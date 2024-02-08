@@ -9,7 +9,7 @@ import (
 
 const (
 	TokenExp  = time.Hour * 3
-	SecretKey = "superkey"
+	SecretKey = "authKey"
 )
 
 type Claims struct {
