@@ -13,8 +13,9 @@ func WithAuth() func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			tokenString, err := r.Cookie("Authorization")
 
-			if err != nil && r.URL.Path != "/api/user/urls" {
-				//newUserID := services.NewUUID()
+			// Cookie not exist
+			if err != nil {
+				newUserID := services.NewUUID()
 				token, err := services.BuildJWTString("123")
 
 				if err != nil {
@@ -31,16 +32,40 @@ func WithAuth() func(next http.Handler) http.Handler {
 				}
 
 				http.SetCookie(w, &cookie)
-				ctx := context.WithValue(r.Context(), app.UserIDContext, "123")
+				ctx := context.WithValue(r.Context(), app.UserIDContext, newUserID)
 				next.ServeHTTP(w, r.WithContext(ctx))
 
 				return
 			}
 
-			userID, err := services.GetUserID(tokenString.Value)
+			userID, isValid, err := services.GetUserID(tokenString.Value)
 
 			if err != nil {
 				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+
+			if !isValid {
+				newUserID := services.NewUUID()
+				token, err := services.BuildJWTString("123")
+
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+
+				cookie := http.Cookie{
+					Name:     "Authorization",
+					Value:    token,
+					Expires:  time.Now().Add(24 * time.Hour),
+					HttpOnly: true,
+					Path:     "/",
+				}
+
+				http.SetCookie(w, &cookie)
+				ctx := context.WithValue(r.Context(), app.UserIDContext, newUserID)
+				next.ServeHTTP(w, r.WithContext(ctx))
+
 				return
 			}
 
