@@ -12,7 +12,7 @@ import (
 
 func createAuthCookie(token string) *http.Cookie {
 	return &http.Cookie{
-		Name:     "Authorization",
+		Name:     "ID",
 		Value:    token,
 		Expires:  time.Now().Add(24 * time.Hour),
 		HttpOnly: true,
@@ -30,7 +30,7 @@ func setUserIDToContext(r *http.Request, userID string) *http.Request {
 func WithAuth() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			tokenString, err := r.Cookie("Authorization")
+			tokenString, err := r.Cookie("ID")
 
 			if errors.Is(http.ErrNoCookie, err) {
 				fmt.Println("Generate new token")
@@ -52,6 +52,12 @@ func WithAuth() func(next http.Handler) http.Handler {
 			}
 
 			userID := services.GetUserID(tokenString.Value)
+
+			if userID == "" {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+
 			next.ServeHTTP(w, setUserIDToContext(r, userID))
 		}
 
