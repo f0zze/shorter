@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"github.com/f0zze/shorter/internal/app"
 	"github.com/f0zze/shorter/internal/app/services"
 	"net/http"
@@ -40,16 +41,8 @@ func WithAuth() func(next http.Handler) http.Handler {
 
 			userID, isValid := services.GetUserID(tokenString.Value)
 
-			if userID != "" && isValid {
-				ctx := context.WithValue(r.Context(), app.UserIDContext, userID)
-				next.ServeHTTP(w, r.WithContext(ctx))
-				return
-			}
-
-			if userID == "" && isValid {
-				w.WriteHeader(http.StatusUnauthorized)
-				return
-			}
+			fmt.Println("userID ", userID)
+			fmt.Println("isValid ", isValid)
 
 			ctx := context.WithValue(r.Context(), app.UserIDContext, "123")
 			next.ServeHTTP(w, r.WithContext(ctx))
