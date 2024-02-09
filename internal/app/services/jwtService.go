@@ -34,7 +34,7 @@ func BuildJWTString(userID string) (string, error) {
 	return tokeString, nil
 }
 
-func GetUserID(tokenString string) (string, bool) {
+func GetUserID(tokenString string) string {
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -44,15 +44,14 @@ func GetUserID(tokenString string) (string, bool) {
 	})
 
 	if err != nil {
-		return "", false
+		return ""
 	}
 
-	fmt.Println("Token maybe have an error ", err.Error())
 	if !token.Valid {
 		fmt.Println("Token is not valid")
-		return "", false
+		return ""
 	}
 
 	fmt.Println("Token is valid")
-	return claims.UserID, true
+	return claims.UserID
 }
