@@ -38,9 +38,9 @@ func WithAuth() func(next http.Handler) http.Handler {
 				return
 			}
 
-			userID, isValid, err := services.GetUserID(tokenString.Value)
+			userID, isValid := services.GetUserID(tokenString.Value)
 
-			if err != nil {
+			if userID == "" && isValid {
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
@@ -68,9 +68,6 @@ func WithAuth() func(next http.Handler) http.Handler {
 
 				return
 			}
-
-			ctx := context.WithValue(r.Context(), app.UserIDContext, userID)
-			next.ServeHTTP(w, r.WithContext(ctx))
 		}
 
 		return http.HandlerFunc(fn)
