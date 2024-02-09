@@ -13,6 +13,7 @@ func WithAuth() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			tokenString, err := r.Cookie("Authorization")
+			fmt.Println("tokenString ", tokenString)
 
 			// Cookie not exist
 			if err != nil {

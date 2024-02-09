@@ -47,6 +47,7 @@ func GetUserID(tokenString string) (string, bool) {
 		return "", false
 	}
 
+	fmt.Println("Token maybe have an error ", err.Error())
 	if !token.Valid {
 		fmt.Println("Token is not valid")
 		return "", false
