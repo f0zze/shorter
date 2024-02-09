@@ -47,7 +47,7 @@ func WithAuth() func(next http.Handler) http.Handler {
 
 			if !isValid {
 				newUserID := services.NewUUID()
-				token, err := services.BuildJWTString("123")
+				token, err := services.BuildJWTString(newUserID)
 
 				if err != nil {
 					w.WriteHeader(http.StatusInternalServerError)
