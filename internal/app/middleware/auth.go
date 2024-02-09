@@ -16,7 +16,7 @@ func WithAuth() func(next http.Handler) http.Handler {
 			// Cookie not exist
 			if err != nil {
 				newUserID := services.NewUUID()
-				token, err := services.BuildJWTString("123")
+				token, err := services.BuildJWTString(newUserID)
 
 				if err != nil {
 					w.WriteHeader(http.StatusInternalServerError)
@@ -40,34 +40,19 @@ func WithAuth() func(next http.Handler) http.Handler {
 
 			userID, isValid := services.GetUserID(tokenString.Value)
 
+			if userID != "" && isValid {
+				ctx := context.WithValue(r.Context(), app.UserIDContext, userID)
+				next.ServeHTTP(w, r.WithContext(ctx))
+				return
+			}
+
 			if userID == "" && isValid {
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 
-			if !isValid {
-				newUserID := services.NewUUID()
-				token, err := services.BuildJWTString(newUserID)
-
-				if err != nil {
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
-
-				cookie := http.Cookie{
-					Name:     "Authorization",
-					Value:    token,
-					Expires:  time.Now().Add(24 * time.Hour),
-					HttpOnly: true,
-					Path:     "/",
-				}
-
-				http.SetCookie(w, &cookie)
-				ctx := context.WithValue(r.Context(), app.UserIDContext, newUserID)
-				next.ServeHTTP(w, r.WithContext(ctx))
-
-				return
-			}
+			ctx := context.WithValue(r.Context(), app.UserIDContext, "123")
+			next.ServeHTTP(w, r.WithContext(ctx))
 		}
 
 		return http.HandlerFunc(fn)
