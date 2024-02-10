@@ -32,7 +32,7 @@ func WithAuth() func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			tokenString, err := r.Cookie("ID")
 
-			if (tokenString == nil || errors.Is(http.ErrNoCookie, err)) && r.URL.Path != "/api/user/urls" {
+			if (errors.Is(http.ErrNoCookie, err)) && r.URL.Path != "/api/user/urls" {
 				fmt.Println("Generate new token")
 				newUserID := services.NewUUID()
 				token, err := services.BuildJWTString(newUserID)
@@ -52,11 +52,6 @@ func WithAuth() func(next http.Handler) http.Handler {
 			}
 
 			userID := services.GetUserID(tokenString.Value)
-
-			if userID == "" {
-				w.WriteHeader(http.StatusUnauthorized)
-				return
-			}
 
 			next.ServeHTTP(w, setUserIDToContext(r, userID))
 		}
