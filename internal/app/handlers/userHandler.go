@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/f0zze/shorter/internal/app"
 	"net/http"
 
 	"github.com/f0zze/shorter/internal/app/services"
@@ -15,14 +14,20 @@ type UserHandler struct {
 }
 
 func (u *UserHandler) Urls(resp http.ResponseWriter, req *http.Request) {
-	userContext := req.Context().Value(app.UserIDContext)
+	userToken, err := req.Cookie("ID")
 
-	if userContext == nil {
+	if err != nil {
 		resp.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	userID := userContext.(string)
+	userID := services.GetUserID(userToken.Value)
+
+	if userID == "" {
+		resp.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	list, _ := u.Service.FindByUser(userID)
 
 	if list == nil {
