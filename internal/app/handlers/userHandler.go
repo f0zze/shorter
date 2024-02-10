@@ -17,11 +17,6 @@ type UserHandler struct {
 func (u *UserHandler) Urls(resp http.ResponseWriter, req *http.Request) {
 	userContext := req.Context().Value(app.UserIDContext)
 
-	if userContext == nil {
-		resp.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
 	userID := userContext.(string)
 	list, _ := u.Service.FindByUser(userID)
 

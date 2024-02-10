@@ -30,7 +30,7 @@ func setUserIDToContext(r *http.Request, userID string) *http.Request {
 func WithAuth() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			if r.URL.Path != "/" {
+			if r.URL.Path == "/api/user/urls" {
 				next.ServeHTTP(w, r)
 				return
 			}
