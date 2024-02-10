@@ -31,8 +31,12 @@ func WithAuth() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			tokenString, err := r.Cookie("ID")
+			fmt.Println("[New Request ]", r.URL.Path)
+			if tokenString != nil {
+				fmt.Println("Cookie value ", tokenString.Value)
+			}
 
-			if (errors.Is(http.ErrNoCookie, err)) && r.URL.Path != "/api/user/urls" {
+			if errors.Is(http.ErrNoCookie, err) {
 				fmt.Println("Generate new token")
 				newUserID := services.NewUUID()
 				token, err := services.BuildJWTString(newUserID)
@@ -46,6 +50,7 @@ func WithAuth() func(next http.Handler) http.Handler {
 
 				req := setUserIDToContext(r, newUserID)
 
+				fmt.Println("Set new user id ", newUserID)
 				next.ServeHTTP(w, req)
 
 				return
@@ -53,6 +58,7 @@ func WithAuth() func(next http.Handler) http.Handler {
 
 			userID := services.GetUserID(tokenString.Value)
 
+			fmt.Println("Set new user id #2", userID)
 			next.ServeHTTP(w, setUserIDToContext(r, userID))
 		}
 
