@@ -6,6 +6,8 @@ import (
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+
+	"github.com/f0zze/shorter/internal/app/entity"
 )
 
 type PostgresStorage struct {
@@ -42,21 +44,44 @@ func (d *PostgresStorage) Find(id string) (*ShortURL, bool) {
 	return result, true
 }
 
-func (d *PostgresStorage) Save(url []ShortURL, _ bool) error {
+func (d *PostgresStorage) FindByUserID(id string) ([]entity.Shorter, error) {
+	query := `SELECT * FROM urls WHERE userid = $1`
+
+	rows, err := d.db.Query(query, id)
+
+	if err != nil {
+		return []entity.Shorter{}, err
+	}
+
+	defer rows.Close()
+
+	var list []entity.Shorter
+	for rows.Next() {
+		item := entity.Shorter{}
+		if err := rows.Scan(&item.ID, &item.ShortURL, &item.OriginalURL, &item.UserID); err != nil {
+			return list, err
+		}
+		list = append(list, item)
+	}
+
+	if err = rows.Err(); err != nil {
+		return list, err
+	}
+
+	return list, nil
+}
+
+func (d *PostgresStorage) Save(url []ShortURL) error {
 
 	tx, err := d.db.Begin()
 
 	if err != nil {
 		return err
 	}
-	query := `-- INSERT INTO urls (id, shorturl, originalurl) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`
-
-	//if strict {
-	query = `INSERT INTO urls (id, shorturl, originalurl) VALUES ($1, $2, $3)`
-	//}
+	query := `INSERT INTO urls (id, shorturl, originalurl, userid) VALUES ($1, $2, $3, $4)`
 
 	for _, u := range url {
-		_, err := tx.ExecContext(context.Background(), query, u.UUID, u.ShortURL, u.OriginalURL)
+		_, err := tx.ExecContext(context.Background(), query, u.UUID, u.ShortURL, u.OriginalURL, u.UserID)
 
 		if err != nil {
 			tx.Rollback()
@@ -100,7 +125,8 @@ func (d *PostgresStorage) CreateTables() error {
 		CREATE TABLE IF NOT EXISTS urls (
 			id VARCHAR(50) PRIMARY KEY,
 			shortUrl VARCHAR(50) UNIQUE NOT NULL,
-			originalUrl VARCHAR(50) UNIQUE NOT NULL
+			originalUrl VARCHAR(50) UNIQUE NOT NULL,
+			userId VARCHAR(50) NOT NULL
 		)
 	`
 

@@ -1,13 +1,14 @@
 package main
 
 import (
-	"github.com/f0zze/shorter/internal/app/logger"
-	chi2 "github.com/go-chi/chi/v5"
 	"log"
 	"net/http"
 
+	chi2 "github.com/go-chi/chi/v5"
+
 	"github.com/f0zze/shorter/cmd/cfg"
 	"github.com/f0zze/shorter/internal/app/handlers"
+	"github.com/f0zze/shorter/internal/app/logger"
 	"github.com/f0zze/shorter/internal/app/middleware"
 	"github.com/f0zze/shorter/internal/app/services"
 	"github.com/f0zze/shorter/internal/app/storage"
@@ -46,12 +47,20 @@ func runServer(config cfg.ServerConfig) {
 		Storage: urlStorage,
 	}
 
-	router := chi2.NewRouter().With(middleware.GzipMiddleware())
+	var user = handlers.UserHandler{
+		Storage: urlStorage,
+		Service: shortURLServices,
+	}
 
-	router.Get("/{id}", withLogging(rootHandler.GetHandler))
+	router := chi2.NewRouter().
+		With(middleware.WithAuth()).
+		With(middleware.GzipMiddleware())
+
 	router.Post("/", withLogging(rootHandler.PostHandler))
+	router.Get("/{id}", withLogging(rootHandler.GetHandler))
 	router.Post("/api/shorten", withLogging(shorten.Post))
 	router.Post("/api/shorten/batch", withLogging(shorten.Batch))
+	router.Get("/api/user/urls", user.Urls)
 	router.Get("/ping", pingHandler.Get)
 
 	error := http.ListenAndServe(config.Host, router)

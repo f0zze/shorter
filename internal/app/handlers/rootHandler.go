@@ -2,11 +2,14 @@ package handlers
 
 import (
 	"errors"
-	"github.com/f0zze/shorter/internal/app/services"
-	"github.com/f0zze/shorter/internal/app/storage"
-	"github.com/go-chi/chi/v5"
+	"github.com/f0zze/shorter/internal/app"
 	"io"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
+
+	"github.com/f0zze/shorter/internal/app/services"
+	"github.com/f0zze/shorter/internal/app/storage"
 )
 
 type RootHandler struct {
@@ -30,7 +33,8 @@ func (rootHandler *RootHandler) PostHandler(resp http.ResponseWriter, req *http.
 		return
 	}
 
-	shortURL, err := rootHandler.URLService.CreateURL(url)
+	userID := req.Context().Value(app.UserIDContext).(string)
+	shortURL, err := rootHandler.URLService.CreateURL(url, userID)
 
 	status := http.StatusCreated
 	if errors.Is(err, storage.ErrConflict) {

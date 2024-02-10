@@ -1,8 +1,9 @@
 package handlers
 
 import (
-	"github.com/f0zze/shorter/internal/app/storage"
 	"net/http"
+
+	"github.com/f0zze/shorter/internal/app/storage"
 )
 
 type PingHandler struct {

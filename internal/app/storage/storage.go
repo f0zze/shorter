@@ -2,10 +2,13 @@ package storage
 
 import (
 	"errors"
+
 	"github.com/f0zze/shorter/cmd/cfg"
+	"github.com/f0zze/shorter/internal/app/entity"
 )
 
 type ShortURL struct {
+	UserID        string
 	UUID          string `json:"uuid"`
 	ShortURL      string `json:"short_Url"`
 	OriginalURL   string `json:"original_Url"`
@@ -20,7 +23,8 @@ var ErrConflict = errors.New("data conflict")
 
 type Storage interface {
 	Find(uuid string) (*ShortURL, bool)
-	Save(url []ShortURL, strict bool) error
+	FindByUserID(id string) ([]entity.Shorter, error)
+	Save(url []ShortURL) error
 	Size() int
 	Ping() bool
 	Close() error
