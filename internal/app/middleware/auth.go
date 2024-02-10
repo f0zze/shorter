@@ -30,12 +30,13 @@ func setUserIDToContext(r *http.Request, userID string) *http.Request {
 func WithAuth() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			if r.URL.Path == "/api/user/urls" {
+
+			tokenString, err := r.Cookie("ID")
+			if r.URL.Path == "/api/user/urls" && tokenString != nil {
 				next.ServeHTTP(w, r)
 				return
 			}
 
-			tokenString, err := r.Cookie("ID")
 			fmt.Println("[New Request ]", r.URL.Path)
 			if tokenString != nil {
 				fmt.Println("Cookie value ", tokenString.Value)
