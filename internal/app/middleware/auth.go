@@ -32,7 +32,7 @@ func WithAuth() func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 
 			tokenString, err := r.Cookie("ID")
-			if r.URL.Path == "/api/user/urls" && tokenString != nil {
+			if r.URL.Path == "/api/user/urls" && tokenString == nil {
 				next.ServeHTTP(w, r)
 				return
 			}
