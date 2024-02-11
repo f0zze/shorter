@@ -13,6 +13,7 @@ type ShortURL struct {
 	ShortURL      string `json:"short_Url"`
 	OriginalURL   string `json:"original_Url"`
 	CorrelationID string
+	DeletedFlag   bool
 }
 
 type URLStorage struct {
@@ -29,6 +30,7 @@ type Storage interface {
 	Ping() bool
 	Close() error
 	FindShortURLBy(originalURL string) (string, error)
+	DeleteURLsByUserID(urls []string, userID string) error
 }
 
 func NewStorage(config *cfg.ServerConfig) (Storage, error) {

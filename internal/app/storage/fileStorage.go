@@ -78,6 +78,10 @@ func (f *fileStorage) FindShortURLBy(originalURL string) (string, error) {
 	return "", nil
 }
 
+func (d *fileStorage) DeleteURLsByUserID(urls []string, userID string) error {
+	return nil
+}
+
 type Producer struct {
 	file   *os.File
 	writer *bufio.Writer

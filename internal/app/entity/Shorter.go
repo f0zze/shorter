@@ -5,4 +5,5 @@ type Shorter struct {
 	OriginalURL string
 	ShortURL    string
 	UserID      string
+	DeletedFlag bool
 }

@@ -58,11 +58,16 @@ func (rootHandler *RootHandler) GetHandler(resp http.ResponseWriter, req *http.R
 		return
 	}
 
-	url, ok := rootHandler.URLService.FindURL(urlID)
+	url, err := rootHandler.URLService.FindURL(urlID)
+
+	if errors.Is(services.URLDeletedErr, err) {
+		http.Error(resp, "Deleted", http.StatusGone)
+		return
+	}
 
 	redirectURL := `http://localhost:8080`
 
-	if ok {
+	if err == nil {
 		redirectURL = url.OriginalURL
 	}
 

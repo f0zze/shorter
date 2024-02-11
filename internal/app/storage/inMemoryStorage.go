@@ -41,6 +41,10 @@ func (s *URLStorage) Close() error {
 	return nil
 }
 
+func (d *URLStorage) DeleteURLsByUserID(urls []string, userID string) error {
+	return nil
+}
+
 func (s *URLStorage) FindShortURLBy(originalURL string) (string, error) {
 	// TODO implement logic
 	fmt.Print(originalURL)

@@ -32,10 +32,10 @@ func connect(dsn string) (*sql.DB, error) {
 
 func (d *PostgresStorage) Find(id string) (*ShortURL, bool) {
 
-	query := `SELECT originalurl FROM urls WHERE shorturl = $1`
+	query := `SELECT originalurl, deletedflag FROM urls WHERE shorturl = $1`
 
 	result := &ShortURL{}
-	err := d.db.QueryRowContext(context.Background(), query, id).Scan(&result.OriginalURL)
+	err := d.db.QueryRowContext(context.Background(), query, id).Scan(&result.OriginalURL, &result.DeletedFlag)
 
 	if err != nil {
 		return nil, false
@@ -58,7 +58,7 @@ func (d *PostgresStorage) FindByUserID(id string) ([]entity.Shorter, error) {
 	var list []entity.Shorter
 	for rows.Next() {
 		item := entity.Shorter{}
-		if err := rows.Scan(&item.ID, &item.ShortURL, &item.OriginalURL, &item.UserID); err != nil {
+		if err := rows.Scan(&item.ID, &item.ShortURL, &item.OriginalURL, &item.UserID, &item.DeletedFlag); err != nil {
 			return list, err
 		}
 		list = append(list, item)
@@ -120,13 +120,26 @@ func (d *PostgresStorage) FindShortURLBy(originalURL string) (string, error) {
 	return shortURL, nil
 }
 
+func (d *PostgresStorage) DeleteURLsByUserID(urls []string, userID string) error {
+
+	query := `UPDATE shorter.public.urls SET deletedflag = TRUE WHERE userid = $1 AND shorturl = ANY($2)`
+	_, err := d.db.ExecContext(context.Background(), query, userID, urls)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (d *PostgresStorage) CreateTables() error {
 	createTableQuery := `
 		CREATE TABLE IF NOT EXISTS urls (
 			id VARCHAR(50) PRIMARY KEY,
 			shortUrl VARCHAR(50) UNIQUE NOT NULL,
 			originalUrl VARCHAR(50) UNIQUE NOT NULL,
-			userId VARCHAR(50) NOT NULL
+			userId VARCHAR(50) NOT NULL,
+		    deletedFlag BOOLEAN NOT NULL DEFAULT FALSE                             
 		)
 	`
 

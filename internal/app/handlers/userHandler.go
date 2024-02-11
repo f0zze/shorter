@@ -46,3 +46,40 @@ func (u *UserHandler) Urls(resp http.ResponseWriter, req *http.Request) {
 	resp.WriteHeader(http.StatusOK)
 	resp.Write(jsonList)
 }
+
+func (u *UserHandler) DeleteURL(w http.ResponseWriter, r *http.Request) {
+	userToken, err := r.Cookie("ID")
+
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	userID := services.GetUserID(userToken.Value)
+
+	if userID == "" {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	var urls []string
+
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+
+	if err := decoder.Decode(&urls); err != nil {
+		http.Error(w, "Could not parse body ", http.StatusInternalServerError)
+		return
+	}
+
+	defer r.Body.Close()
+
+	err = u.Service.DeleteURL(urls, userID)
+
+	if err != nil {
+		http.Error(w, "Could not delete urls", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
+}

@@ -77,10 +77,21 @@ func (s *ShortURLService) CreateURL(originalURL string, userID string) (string, 
 	return s.ResultURL + "/" + urlID, err
 }
 
-func (s *ShortURLService) FindURL(uuid string) (*storage.ShortURL, bool) {
+var NotFoundErr = errors.New("url not found")
+var URLDeletedErr = errors.New("url deleted")
+
+func (s *ShortURLService) FindURL(uuid string) (*storage.ShortURL, error) {
 	url, ok := s.Storage.Find(uuid)
 
-	return url, ok
+	if !ok {
+		return nil, NotFoundErr
+	}
+
+	if ok && url.DeletedFlag {
+		return nil, URLDeletedErr
+	}
+
+	return url, nil
 }
 
 func (s *ShortURLService) FindByUser(userID string) ([]models.UserShorter, error) {
@@ -97,6 +108,13 @@ func (s *ShortURLService) FindByUser(userID string) ([]models.UserShorter, error
 	}
 
 	return result, nil
+}
+
+func (s *ShortURLService) DeleteURL(url []string, userID string) error {
+
+	err := s.Storage.DeleteURLsByUserID(url, userID)
+
+	return err
 }
 
 func (s *ShortURLService) addOrigin(shortURL string) string {
