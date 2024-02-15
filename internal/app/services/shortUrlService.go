@@ -16,7 +16,7 @@ type ShortURLService struct {
 	Storage   storage.Storage
 }
 
-func (s *ShortURLService) CreateURLs(urls []models.OriginalURL) ([]models.ShortURL, error) {
+func (s *ShortURLService) CreateURLs(urls []models.OriginalURL, userID string) ([]models.ShortURL, error) {
 
 	var data []storage.ShortURL
 
@@ -29,10 +29,11 @@ func (s *ShortURLService) CreateURLs(urls []models.OriginalURL) ([]models.ShortU
 			ShortURL:      shortURL,
 			OriginalURL:   u.OriginalURL,
 			CorrelationID: u.CorrelationID,
+			UserID:        userID,
 		})
 	}
 
-	err := s.Storage.Save(data, false)
+	err := s.Storage.Save(data)
 
 	if err != nil {
 		return nil, err
@@ -50,14 +51,15 @@ func (s *ShortURLService) CreateURLs(urls []models.OriginalURL) ([]models.ShortU
 	return result, nil
 }
 
-func (s *ShortURLService) CreateURL(originalURL string) (string, error) {
+func (s *ShortURLService) CreateURL(originalURL string, userID string) (string, error) {
 	urlID := NewShortURL()
 
 	err := s.Storage.Save([]storage.ShortURL{storage.ShortURL{
 		UUID:        urlID,
 		ShortURL:    urlID,
 		OriginalURL: originalURL,
-	}}, true)
+		UserID:      userID,
+	}})
 
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -75,10 +77,48 @@ func (s *ShortURLService) CreateURL(originalURL string) (string, error) {
 	return s.ResultURL + "/" + urlID, err
 }
 
-func (s *ShortURLService) FindURL(uuid string) (*storage.ShortURL, bool) {
+var NotFoundErr = errors.New("url not found")
+var URLDeletedErr = errors.New("url deleted")
+
+func (s *ShortURLService) FindURL(uuid string) (*storage.ShortURL, error) {
 	url, ok := s.Storage.Find(uuid)
 
-	return url, ok
+	if !ok {
+		return nil, NotFoundErr
+	}
+
+	if ok && url.DeletedFlag {
+		return nil, URLDeletedErr
+	}
+
+	return url, nil
+}
+
+func (s *ShortURLService) FindByUser(userID string) ([]models.UserShorter, error) {
+	urls, err := s.Storage.FindByUserID(userID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var result []models.UserShorter
+
+	for _, v := range urls {
+		result = append(result, models.UserShorter{OriginalURL: v.OriginalURL, ShortURL: s.addOrigin(v.ShortURL)})
+	}
+
+	return result, nil
+}
+
+func (s *ShortURLService) DeleteURL(url []string, userID string) error {
+
+	err := s.Storage.DeleteURLsByUserID(url, userID)
+
+	return err
+}
+
+func (s *ShortURLService) addOrigin(shortURL string) string {
+	return s.ResultURL + "/" + shortURL
 }
 
 func NewUUID() string {

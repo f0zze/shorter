@@ -2,11 +2,14 @@ package handlers
 
 import (
 	"errors"
-	"github.com/f0zze/shorter/internal/app/services"
-	"github.com/f0zze/shorter/internal/app/storage"
-	"github.com/go-chi/chi/v5"
+	"github.com/f0zze/shorter/internal/app"
 	"io"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
+
+	"github.com/f0zze/shorter/internal/app/services"
+	"github.com/f0zze/shorter/internal/app/storage"
 )
 
 type RootHandler struct {
@@ -30,13 +33,14 @@ func (rootHandler *RootHandler) PostHandler(resp http.ResponseWriter, req *http.
 		return
 	}
 
-	shortURL, err := rootHandler.URLService.CreateURL(url)
+	userID := req.Context().Value(app.UserIDContext).(string)
+	shortURL, err := rootHandler.URLService.CreateURL(url, userID)
 
 	status := http.StatusCreated
 	if errors.Is(err, storage.ErrConflict) {
 		status = http.StatusConflict
 	} else if err != nil {
-		resp.WriteHeader(http.StatusInternalServerError)
+		http.Error(resp, "Create url failed", http.StatusInternalServerError)
 		return
 	}
 
@@ -54,11 +58,16 @@ func (rootHandler *RootHandler) GetHandler(resp http.ResponseWriter, req *http.R
 		return
 	}
 
-	url, ok := rootHandler.URLService.FindURL(urlID)
+	url, err := rootHandler.URLService.FindURL(urlID)
+
+	if errors.Is(services.URLDeletedErr, err) {
+		http.Error(resp, "Deleted", http.StatusGone)
+		return
+	}
 
 	redirectURL := `http://localhost:8080`
 
-	if ok {
+	if err == nil {
 		redirectURL = url.OriginalURL
 	}
 

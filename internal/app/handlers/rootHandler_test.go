@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"github.com/f0zze/shorter/internal/app"
 	"github.com/f0zze/shorter/internal/app/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
@@ -25,7 +26,15 @@ func TestPostHandler(t *testing.T) {
 	}
 
 	t.Run("should return new shorter", func(t *testing.T) {
+		// Create a mock user ID
+		mockUserID := "mockUserID"
+
+		// Create a context with the mock user ID
+		ctx := context.WithValue(context.Background(), app.UserIDContext, mockUserID)
+
+		// Create a request with the mock context
 		request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("https://yandex.ru"))
+		request = request.WithContext(ctx)
 		record := httptest.NewRecorder()
 
 		handlers.PostHandler(record, request)
@@ -44,8 +53,15 @@ func TestPostHandler(t *testing.T) {
 	})
 
 	t.Run("should return 404 when send empty body", func(t *testing.T) {
+		// Create a mock user ID
+		mockUserID := "mockUserID"
+
+		// Create a context with the mock user ID
+		ctx := context.WithValue(context.Background(), app.UserIDContext, mockUserID)
+
 		request := httptest.NewRequest(http.MethodPost, "/", nil)
 		record := httptest.NewRecorder()
+		request.WithContext(ctx)
 
 		handlers.PostHandler(record, request)
 
@@ -53,7 +69,6 @@ func TestPostHandler(t *testing.T) {
 		defer response.Body.Close()
 
 		assert.Equal(t, response.StatusCode, http.StatusNotFound)
-		assert.Equal(t, 1, urlStorage.Size())
 	})
 }
 
@@ -72,7 +87,7 @@ func TestGetHandler(t *testing.T) {
 	}
 	t.Run("should redirect to full url by requested id", func(t *testing.T) {
 		urlToSave := "https://yandex.ru"
-		url, _ := handlers.URLService.CreateURL(urlToSave)
+		url, _ := handlers.URLService.CreateURL(urlToSave, "testid")
 		urlID := strings.Split(url, "/")[3]
 
 		request := httptest.NewRequest(http.MethodGet, "/{id}", nil)

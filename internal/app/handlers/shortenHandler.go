@@ -3,10 +3,12 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"github.com/f0zze/shorter/internal/app"
+	"net/http"
+
 	"github.com/f0zze/shorter/internal/app/models"
 	"github.com/f0zze/shorter/internal/app/services"
 	"github.com/f0zze/shorter/internal/app/storage"
-	"net/http"
 )
 
 type ShortenHandler struct {
@@ -32,7 +34,8 @@ func (h *ShortenHandler) Batch(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	result, err := h.URLService.CreateURLs(urls)
+	userID := req.Context().Value(app.UserIDContext).(string)
+	result, err := h.URLService.CreateURLs(urls, userID)
 
 	if err != nil {
 		resp.WriteHeader(http.StatusInternalServerError)
@@ -58,11 +61,12 @@ func (h *ShortenHandler) Post(resp http.ResponseWriter, req *http.Request) {
 	decoder.DisallowUnknownFields()
 
 	if err := decoder.Decode(&fullURL); err != nil {
-		http.Error(resp, err.Error(), http.StatusBadRequest)
+		http.Error(resp, "Could not decode body", http.StatusBadRequest)
 		return
 	}
 
-	shortURL, err := h.URLService.CreateURL(fullURL.URL)
+	userID := req.Context().Value(app.UserIDContext).(string)
+	shortURL, err := h.URLService.CreateURL(fullURL.URL, userID)
 
 	status := http.StatusCreated
 	if errors.Is(err, storage.ErrConflict) {

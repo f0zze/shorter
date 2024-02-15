@@ -5,12 +5,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+
+	"github.com/f0zze/shorter/internal/app/entity"
 )
 
 type fileStorage struct {
 	consumer     *Consumer
 	producer     *Producer
 	inMemoryData map[string]*ShortURL
+}
+
+func (f *fileStorage) FindByUserID(_ string) ([]entity.Shorter, error) {
+	return []entity.Shorter{}, nil
 }
 
 func (f *fileStorage) Find(uuid string) (*ShortURL, bool) {
@@ -33,7 +39,7 @@ func (f *fileStorage) Find(uuid string) (*ShortURL, bool) {
 	return nil, false
 }
 
-func (f *fileStorage) Save(url []ShortURL, _ bool) error {
+func (f *fileStorage) Save(url []ShortURL) error {
 	for _, u := range url {
 		err := f.producer.WriteEvent(&u)
 
@@ -70,6 +76,10 @@ func (f *fileStorage) FindShortURLBy(originalURL string) (string, error) {
 	// TODO implement logic
 	fmt.Print(originalURL)
 	return "", nil
+}
+
+func (d *fileStorage) DeleteURLsByUserID(urls []string, userID string) error {
+	return nil
 }
 
 type Producer struct {
