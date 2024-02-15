@@ -40,7 +40,7 @@ func (rootHandler *RootHandler) PostHandler(resp http.ResponseWriter, req *http.
 	if errors.Is(err, storage.ErrConflict) {
 		status = http.StatusConflict
 	} else if err != nil {
-		resp.WriteHeader(http.StatusInternalServerError)
+		http.Error(resp, "Create url failed", http.StatusInternalServerError)
 		return
 	}
 
